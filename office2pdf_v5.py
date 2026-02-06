@@ -289,13 +289,14 @@ class AppConfig:
     wm1_pos: str = "None"
     wm2_text: str = ""
     wm2_pos: str = "None"
+
     wm_font: str = ""
     wm_size: int = 60
     wm_color: str = "#C0C0C0"
     wm_alpha: float = 0.3
 
     pg_enabled: bool = False
-    pg_pos: str = ""
+    pg_pos: str = "bc"
     pg_format: str = "- {n} / {total} -"
 
     merge_all: bool = False
@@ -320,8 +321,6 @@ class PDFUltimateApp:
         self.root = root
 
         # OSの言語を取得（'ja_JP' なら 'ja'、それ以外なら 'en' にする）
-        # system_lang = locale.getdefaultlocale()[0]
-        # self.lang = "ja" if system_lang and system_lang.startswith("ja") else "en"
         system_lang = locale.getdefaultlocale()[0]
         self.lang = "ja" if system_lang and system_lang.startswith("ja") else "en"
 
@@ -386,6 +385,11 @@ class PDFUltimateApp:
         self.config.wm1_pos = self.wm1_pos_var.get()
         self.config.wm2_text = self.wm2_val.get()
         self.config.wm2_pos = self.wm2_pos_var.get()
+        # 透かし位置：表示名 → 内部ID
+        d1 = self.wm1_pos_var.get()
+        d2 = self.wm2_pos_var.get()
+        self.config.wm1_pos = self.pos_display_to_id.get(d1, "None")
+        self.config.wm2_pos = self.pos_display_to_id.get(d2, "None")
         self.config.wm_font = self.wm_font_combo.get()
         self.config.wm_alpha = float(self.wm_alpha_scale.get())
         self.config.wm_size = int(self.wm_size_spin.get())
@@ -393,6 +397,9 @@ class PDFUltimateApp:
         self.config.pg_enabled = self.pg_en_var.get()
         self.config.pg_pos = self.pg_pos_var.get()
         self.config.pg_format = self.pg_fmt_var.get()
+        # ページ番号位置：表示名 → 内部ID
+        pg_disp = (self.pg_pos_var.get() or "").strip()
+        self.config.pg_pos = self.pg_display_to_id.get(pg_disp, "bc")
         self.config.naming_tpl = self.naming_var.get()
         self.config.out_mode = self.out_mode_var.get()
         self.config.output_dir = self.out_dir_var.get()
@@ -412,9 +419,15 @@ class PDFUltimateApp:
         self.config.compress_pdf = self.compress_var.get()
 
     def apply_config_to_ui(self):
+        # 任意：UI変数に内部IDが入っていたら補正
+        if self.pg_pos_var.get() in ("bc", "br"):
+            self.pg_pos_var.set(self.pg_id_to_display.get(self.pg_pos_var.get(), "中央下"))
         self.wm1_val.set(self.config.wm1_text)
         self.wm1_pos_var.set(self.config.wm1_pos)
         self.wm2_val.set(self.config.wm2_text)
+        # 透かし位置：内部ID → 表示名
+        self.wm1_pos_var.set(self.pos_id_to_display.get(self.config.wm1_pos, self.pos_id_to_display["None"]))
+        self.wm2_pos_var.set(self.pos_id_to_display.get(self.config.wm2_pos, self.pos_id_to_display["None"]))
         self.wm2_pos_var.set(self.config.wm2_pos)
         self.wm_font_combo.set(self.config.wm_font)
         self.wm_alpha_scale.set(self.config.wm_alpha)
@@ -422,7 +435,13 @@ class PDFUltimateApp:
         self.wm_size_spin.insert(0, self.config.wm_size)
         self.wm_color_btn.config(bg=self.config.wm_color)
         self.pg_en_var.set(self.config.pg_enabled)
-        self.pg_pos_var.set(self.config.pg_pos)
+        self.pg_fmt_var.set(self.config.pg_format)
+        # ページ番号位置：内部ID → 表示名
+
+        disp = self.pg_id_to_display.get(self.config.pg_pos, "中央下")
+        self.pg_pos_var.set(disp)
+        self.pg_pos_var.set(self.pg_id_to_display.get(self.config.pg_pos, "中央下"))
+        self.pg_en_var.set(self.config.pg_enabled)
         self.pg_fmt_var.set(self.config.pg_format)
         self.naming_var.set(self.config.naming_tpl)
         self.out_mode_var.set(self.config.out_mode)
@@ -531,14 +550,26 @@ class PDFUltimateApp:
 
         pg_row = tk.Frame(wm_frame)
         pg_row.pack(fill=tk.X, pady=5)
+
+        # --- page number position display <-> id mapping ---
+        self.pg_display_to_id = {
+            "中央下": "bc",
+            "右下": "br",
+        }
+        self.pg_id_to_display = {v: k for k, v in self.pg_display_to_id.items()}
         self.pg_en_var = tk.BooleanVar()
         tk.Checkbutton(pg_row, text=self._("lbl_page_num"), variable=self.pg_en_var).pack(side=tk.LEFT)
         self.pg_fmt_var = tk.StringVar()
         tk.Entry(pg_row, textvariable=self.pg_fmt_var, width=12).pack(side=tk.LEFT, padx=2)
-        self.pg_pos_var = tk.StringVar()
-        ttk.Combobox(pg_row, textvariable=self.pg_pos_var, values=["中央下", "右下"], width=8).pack(
-            side=tk.LEFT, padx=2
-        )
+        self.pg_pos_var = tk.StringVar(value="中央下")
+
+        ttk.Combobox(
+            pg_row,
+            textvariable=self.pg_pos_var,
+            values=list(self.pg_display_to_id.keys()),
+            width=8,
+            state="readonly",
+        ).pack(side=tk.LEFT, padx=2)
 
         # Right: Split Settings
         split_frame = tk.LabelFrame(mid_frame, text=self._("frame_detail"), padx=10, pady=5)
@@ -782,8 +813,8 @@ class PDFUltimateApp:
         except Exception as e:
             self.queue_log(f"{self._('log_font_err')}: {e}")
 
-    def _register_reportlab_font(self) -> Tuple[str, str]:
-        chosen = self.wm_font_combo.get()
+    def _register_reportlab_font(self, chosen_font: str) -> Tuple[str, str]:
+        chosen = chosen_font or ""
         if chosen in self.font_map:
             p, idx = self.font_map[chosen]
             internal_name = f"WM_{chosen.replace(' ', '_')}_{idx}"
@@ -796,6 +827,7 @@ class PDFUltimateApp:
                 return internal_name, f"{self._('log_font_using')}: {chosen}"
             except Exception as e:
                 self.queue_log(f"{self._('log_font_fail')}: {e}")
+
         try:
             pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
             return "HeiseiKakuGo-W5", "使用フォント: 標準CIDフォント"
@@ -807,35 +839,45 @@ class PDFUltimateApp:
         if not self.files:
             messagebox.showwarning(self._("title_warn"), self._("msg_no_files"))
             return
+
+        # UIスレッドで確定値を config に落とす
+        self.update_config_from_ui()
         self.save_config()
+
+        # ワーカースレッド用にスナップショットを保持（Tk参照禁止にする）
+        cfg = AppConfig(**asdict(self.config))
+
         self.processing = True
         self.cancel_flag.clear()
         self.btn_convert.config(state=tk.DISABLED)
         self.btn_cancel.config(state=tk.NORMAL)
-        threading.Thread(target=self.main_process, daemon=True).start()
 
-    def main_process(self):
+        threading.Thread(target=self.main_process, args=(cfg,), daemon=True).start()
+
+    def main_process(self, cfg: AppConfig):
         pythoncom.CoInitialize()
-        # 一時ディレクトリ管理の改善
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
                 temp_units = []
-                self.queue_progress(max=len(self.files), progress=0, label="変換中...")
+                self.queue_progress(max=len(self.files), progress=0, label=self._("st_converting"))
 
                 for i, f in enumerate(self.files):
                     if self.cancel_flag.is_set():
                         break
+
                     self.queue_progress(
-                        progress=i + 1, label=f"{self._('st_converting')}: {os.path.basename(f['path'])}"
+                        progress=i + 1,
+                        label=f"{self._('st_conv_file')} {os.path.basename(f['path'])}",
                     )
 
                     if f["type"] == "Excel":
-                        units = self.cv_excel_units(f, tmp_dir)
+                        units = self.cv_excel_units(f, tmp_dir, cfg)
                         for u_path, s_name in units:
                             temp_units.append({"path": u_path, "orig": f, "sheet": s_name, "fseq": i + 1})
                     else:
                         tmp_p = os.path.join(tmp_dir, f"conv_{i}.pdf")
                         ok = False
+
                         if f["type"] == "Word":
                             ok = self.cv_word(f, tmp_p)
                         elif f["type"] == "PowerPoint":
@@ -846,37 +888,49 @@ class PDFUltimateApp:
                             ok = self.cv_pdf(f, tmp_p)
 
                         if ok:
+                            # --- F: range指定をここでPDFへ反映 ---
+                            r_spec = f.get("range", "")
+                            if not self._is_all_range(r_spec):
+                                tmp_r = os.path.join(tmp_dir, f"range_{i}.pdf")
+                                if self.apply_range_to_pdf(tmp_p, r_spec, tmp_r):
+                                    tmp_p = tmp_r
+                                else:
+                                    self.queue_log(
+                                        f"{self._('log_conv_fail')} {os.path.basename(f['path'])} (range empty)"
+                                    )
+                                    continue
+
                             temp_units.append({"path": tmp_p, "orig": f, "sheet": "", "fseq": i + 1})
 
                 if not temp_units or self.cancel_flag.is_set():
                     return
 
-                # 最終PDF生成
-                self.queue_progress(label=f"{self._('st_finalizing')}")
+                self.queue_progress(label=self._("st_finalizing"))
                 global_seq = 1
                 dest_to_open = ""
 
-                if self.config.merge_all:
+                if cfg.merge_all:
                     dest = self.get_final_dest(temp_units[0], 1, 1, 1)
                     if dest:
-                        self.finalize_pdfs([u["path"] for u in temp_units], dest, temp_units)
+                        self.finalize_pdfs([u["path"] for u in temp_units], dest, temp_units, cfg)
                         dest_to_open = dest
                 else:
                     for i, f_orig in enumerate(self.files):
                         if self.cancel_flag.is_set():
                             break
+
                         u_list = [u for u in temp_units if u["orig"] == f_orig]
                         if not u_list:
                             continue
 
                         t = f_orig["type"]
                         do_pg = (
-                            (t == "Word" and self.config.split_word_page)
-                            or (t == "PowerPoint" and self.config.split_ppt_page)
-                            or (t == "PDF" and self.config.split_pdf_page)
-                            or (t == "Excel" and self.config.split_excel_page)
+                            (t == "Word" and cfg.split_word_page)
+                            or (t == "PowerPoint" and cfg.split_ppt_page)
+                            or (t == "PDF" and cfg.split_pdf_page)
+                            or (t == "Excel" and cfg.split_excel_page)
                         )
-                        do_sh = t == "Excel" and self.config.split_excel_sheet
+                        do_sh = t == "Excel" and cfg.split_excel_sheet
 
                         if do_pg:
                             for u in u_list:
@@ -890,24 +944,25 @@ class PDFUltimateApp:
                                         tmp_s = os.path.join(tmp_dir, "split.pdf")
                                         with open(tmp_s, "wb") as fs:
                                             writer.write(fs)
-                                        self.finalize_pdfs([tmp_s], dest, [u], p_idx + 1, p_total)
+                                        self.finalize_pdfs([tmp_s], dest, [u], cfg, p_idx + 1, p_total)
                                         global_seq += 1
                                         dest_to_open = dest
+
                         elif do_sh:
                             for u in u_list:
                                 dest = self.get_final_dest(u, global_seq, i + 1, 1)
                                 if dest:
-                                    self.finalize_pdfs([u["path"]], dest, [u])
+                                    self.finalize_pdfs([u["path"]], dest, [u], cfg)
                                     global_seq += 1
                                     dest_to_open = dest
                         else:
                             dest = self.get_final_dest(u_list[0], global_seq, i + 1, 1)
                             if dest:
-                                self.finalize_pdfs([u["path"] for u in u_list], dest, u_list)
+                                self.finalize_pdfs([u["path"] for u in u_list], dest, u_list, cfg)
                                 global_seq += 1
                                 dest_to_open = dest
 
-                self.finish_action(dest_to_open)
+                self.finish_action(dest_to_open, cfg)
 
             except Exception as e:
                 self.queue_log(f"{self._('log_fatal')}: {e}")
@@ -918,7 +973,7 @@ class PDFUltimateApp:
                 pythoncom.CoUninitialize()
 
     # --- Office Converters (with COM cleanup & Excel Print Area) ---
-    def cv_excel_units(self, f: dict, tmp_dir: str) -> List[Tuple[str, str]]:
+    def cv_excel_units(self, f: dict, tmp_dir: str, cfg: AppConfig) -> List[Tuple[str, str]]:
         units = []
         excel = None
         wb = None
@@ -938,17 +993,14 @@ class PDFUltimateApp:
                     if ws.Visible != -1:
                         continue
 
-                    # 印刷設定
                     ps = ws.PageSetup
-                    if self.config.excel_fit or self.config.excel_fit_tall:
+                    if cfg.excel_fit or cfg.excel_fit_tall:
                         ps.Zoom = False
-                        if self.config.excel_fit:
+                        if cfg.excel_fit:
                             ps.FitToPagesWide = 1
-                        if self.config.excel_fit_tall:
+                        if cfg.excel_fit_tall:
                             ps.FitToPagesTall = 1
 
-                    # 印刷範囲の処理: 標準機能として組込
-                    # ws.ExportAsFixedFormat(0, ...) はデフォルトで PrintArea を尊重する
                     tmp_p = os.path.join(tmp_dir, f"ex_{len(units)}.pdf")
                     ws.ExportAsFixedFormat(0, tmp_p)
                     units.append((tmp_p, name))
@@ -958,10 +1010,8 @@ class PDFUltimateApp:
         finally:
             if wb:
                 wb.Close(False)
-                wb = None
             if excel:
                 excel.Quit()
-                excel = None
 
     def cv_word(self, f, out):
         word = None
@@ -1035,46 +1085,48 @@ class PDFUltimateApp:
 
     # --- Watermark & Finalize ---
     def finalize_pdfs(
-        self, src_list: List[str], dest: str, units: List[dict], page_offset: int = 1, total_override: int = 0
+        self,
+        src_list: List[str],
+        dest: str,
+        units: List[dict],
+        cfg: AppConfig,
+        page_offset: int = 1,
+        total_override: int = 0,
     ):
         writer = PdfWriter()
-        font_name, _ = self._register_reportlab_font()
+        font_name, _ = self._register_reportlab_font(cfg.wm_font)
+
         readers = [PdfReader(s) for s in src_list]
         total_p = total_override if total_override > 0 else sum(len(r.pages) for r in readers)
         curr_p = page_offset
 
+        # 透かし有無
+        has_wm = any([cfg.wm1_text and cfg.wm1_pos != "None", cfg.wm2_text and cfg.wm2_pos != "None"])
+        has_pg = cfg.pg_enabled
+
         for r in readers:
             for page in r.pages:
                 page.transfer_rotation_to_content()
-                has_wm = any(getattr(self, f"wm{i}_pos_var").get() != "None" for i in [1, 2])
-                has_pg = self.pg_en_var.get()
 
                 if has_wm or has_pg:
                     w, h = float(page.mediabox.width), float(page.mediabox.height)
                     packet = io.BytesIO()
                     c = canvas.Canvas(packet, pagesize=(w, h))
-                    # 透かし描画
-                    for i in [1, 2]:
-                        txt_raw = getattr(self, f"wm{i}_val").get()
-                        # UIの表示名から内部IDを取得
-                        pos_display = getattr(self, f"wm{i}_pos_var").get()
-                        pos_id = self.pos_display_to_id.get(pos_display, "None")
 
+                    # ---- Watermark (1/2) ----
+                    for txt_raw, pos_id in [(cfg.wm1_text, cfg.wm1_pos), (cfg.wm2_text, cfg.wm2_pos)]:
                         if pos_id == "None" or not txt_raw:
                             continue
 
-                        txt = self.apply_tags(txt_raw, units[0], curr_p, 1, curr_p, total_p)
+                        txt = self.apply_tags(txt_raw, units[0], curr_p, units[0].get("fseq", 1), curr_p, total_p)
                         c.saveState()
 
-                        # フォント設定
-                        f_size = int(self.wm_size_spin.get())
+                        f_size = int(cfg.wm_size)
                         c.setFont(font_name, f_size)
 
-                        # 色と透明度
-                        rgb = [int(self.wm_color_btn.cget("bg").lstrip("#")[j : j + 2], 16) / 255 for j in (0, 2, 4)]
-                        c.setFillColorRGB(*rgb, alpha=float(self.wm_alpha_scale.get()))
+                        rgb = [int(cfg.wm_color.lstrip("#")[j : j + 2], 16) / 255 for j in (0, 2, 4)]
+                        c.setFillColorRGB(*rgb, alpha=float(cfg.wm_alpha))
 
-                        # --- IDベースの配置ロジック ---
                         if pos_id == "diag":
                             c.translate(w / 2, h / 2)
                             c.rotate(45)
@@ -1083,23 +1135,53 @@ class PDFUltimateApp:
                             c.drawCentredString(w / 2, h / 2, txt)
                         else:
                             tw = c.stringWidth(txt, font_name, f_size)
-                            # X座標
+
                             if "l" in pos_id:
                                 tx = 20
                             elif "r" in pos_id:
                                 tx = w - tw - 20
                             else:
-                                tx = (w - tw) / 2  # center
-                            # Y座標
+                                tx = (w - tw) / 2
+
                             if "t" in pos_id:
                                 ty = h - f_size - 20
                             elif "b" in pos_id:
                                 ty = 20
                             else:
-                                ty = h / 2  # mid
+                                ty = h / 2
 
                             c.drawString(tx, ty, txt)
+
                         c.restoreState()
+
+                    # ---- Page number ----
+
+                    if has_pg:
+                        pg_txt = cfg.pg_format.replace("{n}", str(curr_p)).replace("{total}", str(total_p))
+                        pg_txt = self.apply_tags(pg_txt, units[0], curr_p, units[0].get("fseq", 1), curr_p, total_p)
+
+                        c.saveState()
+
+                        # ★固定：10.5pt / 黒（必ずここで定義）
+                        pg_size = 10.5
+                        c.setFont(font_name, pg_size)
+                        c.setFillColorRGB(0, 0, 0)  # 黒固定
+
+                        tw = c.stringWidth(pg_txt, font_name, pg_size)
+
+                        # bc=中央下, br=右下
+                        margin_x = 20
+                        margin_y = 24
+                        if cfg.pg_pos == "br":
+                            x = w - tw - margin_x
+                            y = margin_y
+                        else:  # "bc" default
+                            x = (w - tw) / 2
+                            y = margin_y
+
+                        c.drawString(x, y, pg_txt)
+                        c.restoreState()
+
                     c.showPage()
                     c.save()
                     packet.seek(0)
@@ -1108,12 +1190,11 @@ class PDFUltimateApp:
                 writer.add_page(page)
                 curr_p += 1
 
-        if self.meta_var.get():
+        if cfg.clear_metadata:
             writer.add_metadata({})
-        if self.pw_var.get():
-            writer.encrypt(self.pw_var.get())
-        if self.compress_var.get():
-            # 新旧どちらのメソッド名でも動くようにチェック
+        if cfg.password:
+            writer.encrypt(cfg.password)
+        if cfg.compress_pdf:
             if hasattr(writer, "compress_contents"):
                 writer.compress_contents()
             elif hasattr(writer, "compress_content_streams"):
@@ -1125,67 +1206,139 @@ class PDFUltimateApp:
     # --- Preview Feature ---
     def preview_watermark(self):
         if not self.files:
-            messagebox.showinfo("情報", "プレビューするファイルがありません。")
+            messagebox.showinfo(self._("title_info"), self._("msg_no_preview"))
             return
 
+        # UIスレッドで確定値をconfigへ
         self.update_config_from_ui()
-        f = self.files[0]
+        cfg = AppConfig(**asdict(self.config))
 
-        def _task():
+        # できれば選択中、なければ先頭
+        sel = self.tree.selection()
+        f = self.files[self.tree.index(sel[0])] if sel else self.files[0]
+
+        def _task(cfg_snapshot: AppConfig, f_info: dict):
             pythoncom.CoInitialize()
             with tempfile.TemporaryDirectory() as tmp_dir:
                 try:
-                    self.queue_log(f"プレビュー生成中: {os.path.basename(f['path'])}")
+                    self.queue_log(f"{self._('st_preview_gen')} {os.path.basename(f_info['path'])}")
                     tmp_pdf = os.path.join(tmp_dir, "preview_base.pdf")
-                    # 最初の一部だけ取得するように工夫
-                    if f["type"] == "Excel":
-                        res = self.cv_excel_units(f, tmp_dir)
+                    ok = False
+
+                    if f_info["type"] == "Excel":
+                        res = self.cv_excel_units(f_info, tmp_dir, cfg_snapshot)
                         if not res:
                             return
                         tmp_pdf = res[0][0]
+                        ok = True
                     else:
-                        ok = False
-                        if f["type"] == "Word":
-                            ok = self.cv_word(f, tmp_pdf)
-                        elif f["type"] == "PowerPoint":
-                            ok = self.cv_ppt(f, tmp_pdf)
+                        if f_info["type"] == "Word":
+                            ok = self.cv_word(f_info, tmp_pdf)
+                        elif f_info["type"] == "PowerPoint":
+                            ok = self.cv_ppt(f_info, tmp_pdf)
+                        elif f_info["type"] == "Image":
+                            ok = self.cv_img(f_info, tmp_pdf)
+                        elif f_info["type"] == "PDF":
+                            ok = self.cv_pdf(f_info, tmp_pdf)
 
-                        # 以下のログ出力を追加
-                        if ok:
-                            temp_units.append({"path": tmp_p, "orig": f, "sheet": "", "fseq": i + 1})
+                    if not ok:
+                        self.queue_log(f"{self._('log_conv_fail')} {os.path.basename(f_info['path'])}")
+                        return
+
+                    # range指定を反映してから1ページ目を作る
+                    r_spec = f_info.get("range", "")
+                    if not self._is_all_range(r_spec):
+                        tmp_r = os.path.join(tmp_dir, "preview_range.pdf")
+                        if self.apply_range_to_pdf(tmp_pdf, r_spec, tmp_r):
+                            tmp_pdf = tmp_r
                         else:
-                            self.queue_log(f"変換に失敗しました: {os.path.basename(f['path'])}")
-
-                        if not temp_units:  # 変換されたファイルがゼロの場合
-                            self.queue_log("処理対象のファイルが生成されなかったため、終了します。")
+                            self.queue_log(
+                                f"{self._('log_conv_fail')} {os.path.basename(f_info['path'])} (range empty)"
+                            )
                             return
 
-                        elif f["type"] == "Image":
-                            ok = self.cv_img(f, tmp_pdf)
-                        elif f["type"] == "PDF":
-                            ok = self.cv_pdf(f, tmp_pdf)
-                        if not ok:
-                            return
-
-                    # 1ページ目だけに絞る
                     reader = PdfReader(tmp_pdf)
+                    if not reader.pages:
+                        return
+
                     writer = PdfWriter()
                     writer.add_page(reader.pages[0])
                     tmp_one = os.path.join(tmp_dir, "one.pdf")
                     with open(tmp_one, "wb") as fs:
                         writer.write(fs)
 
-                    # 透かし適用
                     out_p = os.path.join(tempfile.gettempdir(), "PDFPro_Preview.pdf")
-                    self.finalize_pdfs([tmp_one], out_p, [{"orig": f, "sheet": "Preview"}], 1, 1)
+                    unit = {"orig": f_info, "sheet": "Preview", "fseq": 1}
+                    self.finalize_pdfs([tmp_one], out_p, [unit], cfg_snapshot, 1, 1)
+
                     os.startfile(out_p)
-                    self.queue_log("プレビューを表示しました。")
+                    self.queue_log(self._("msg_preview_ok"))
+
                 except Exception as e:
-                    self.queue_log(f"プレビュー失敗: {e}")
+                    self.queue_log(f"{self._('msg_preview_fail')} {e}")
                 finally:
                     pythoncom.CoUninitialize()
 
-        threading.Thread(target=_task, daemon=True).start()
+        threading.Thread(target=_task, args=(cfg, f), daemon=True).start()
+
+    def _is_all_range(self, s: str) -> bool:
+        s = (s or "").strip()
+        if not s:
+            return True
+        return s in ("全ページ", "All Pages", self._("val_all_pages"))
+
+    def parse_page_spec(self, spec: str, total_pages: int) -> List[int]:
+        """
+        spec例: "1-3,5,8-" / "2" / "1-" / "-3"（-3は1-3扱い）
+        戻り値: 0-based page indices（重複排除、昇順）
+        """
+        if self._is_all_range(spec):
+            return list(range(total_pages))
+
+        spec = spec.replace(" ", "")
+        out = set()
+
+        for token in [t for t in spec.split(",") if t]:
+            m = re.fullmatch(r"(\d+)?-(\d+)?", token)
+            if m:
+                a, b = m.group(1), m.group(2)
+                start = int(a) if a else 1
+                end = int(b) if b else total_pages
+                start = max(1, start)
+                end = min(total_pages, end)
+                if start <= end:
+                    for p in range(start, end + 1):
+                        out.add(p - 1)
+                continue
+
+            if token.isdigit():
+                p = int(token)
+                if 1 <= p <= total_pages:
+                    out.add(p - 1)
+
+        return sorted(out)
+
+    def apply_range_to_pdf(self, src_pdf: str, range_spec: str, dst_pdf: str) -> bool:
+        """
+        src_pdf を range_spec に従って抽出して dst_pdf へ。
+        range_spec が全ページなら単純コピー（読み書き）する。
+        """
+        try:
+            r = PdfReader(src_pdf)
+            total = len(r.pages)
+            idxs = self.parse_page_spec(range_spec, total)
+            if not idxs:
+                return False
+
+            w = PdfWriter()
+            for i in idxs:
+                w.add_page(r.pages[i])
+
+            with open(dst_pdf, "wb") as f:
+                w.write(f)
+            return True
+        except:
+            return False
 
     # --- Utils ---
     def apply_tags(self, tpl: str, u_info: dict, seq: int, fseq: int, pseq: int, ptotal: int = 1) -> str:
@@ -1281,13 +1434,15 @@ class PDFUltimateApp:
             pass
         self.root.after(100, self.check_progress_queue)
 
-    def finish_action(self, path):
-        self.queue_log(f"{self._('msg_all_done')}")
-        if self.open_var.get() and path and os.path.exists(path):
+    def finish_action(self, path: str, cfg: AppConfig):
+        self.queue_log(self._("msg_all_done"))
+
+        # os.startfile はワーカースレッドでも大抵動くが、気になるなら root.after へ移してもOK
+        if cfg.auto_open and path and os.path.exists(path):
             os.startfile(path)
-        if self.folder_var.get() and path:
+        if cfg.open_folder and path:
             os.startfile(os.path.dirname(path))
-        if self.clear_after_var.get():
+        if cfg.clear_after:
             self.root.after(0, self.clear_list)
 
     # --- File Handlers ---
