@@ -197,7 +197,9 @@ class PDFUltimateApp:
         main_container.pack(fill=tk.BOTH, expand=True)
 
         # File List
-        file_frame = tk.LabelFrame(main_container, text="変換ファイルリスト (ドラッグで順序入替)")
+        file_frame = tk.LabelFrame(
+            main_container, text="変換ファイル(ドロップで登録・ダブルクリックでページ指定)", padx=5, pady=5
+        )
         file_frame.pack(fill=tk.BOTH, expand=True, pady=5)
         self.tree = ttk.Treeview(file_frame, columns=("Type", "Name", "Range", "Out"), show="headings", height=8)
         for col, head, w in [
@@ -340,7 +342,7 @@ class PDFUltimateApp:
 
         n_row = tk.Frame(bottom_frame)
         n_row.pack(fill=tk.X, pady=2)
-        tk.Label(n_row, text="命名ルール:").pack(side=tk.LEFT)
+        tk.Label(n_row, text="ファイル名・命名ルール:").pack(side=tk.LEFT)
         self.naming_var = tk.StringVar()
         self.naming_combo = ttk.Combobox(n_row, textvariable=self.naming_var, values=self.nm_templates, width=40)
         self.naming_combo.pack(side=tk.LEFT, padx=5)
