@@ -108,7 +108,8 @@ pyinstaller --onefile --noconsole --collect-all tkinterdnd2 --name Office2PDF Of
 - `--collect-all tkinterdnd2`: ドラッグ&ドロップに必要なライブラリを全て含めます。
 
 ビルド完了後、`dist` フォルダ内に `Office2PDF.exe` が生成されます。
-```
+
+#または、auto-py-to-exeでUPXを使用してビルドしてください。
 
 ---
 
