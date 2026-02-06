@@ -2,9 +2,6 @@
 
 > Designed for office workers who need reliable, offline batch PDF processing.
 
-https://img.shields.io/badge/License-MIT-green.svg
-https://img.shields.io/badge/Platform-Windows-blue.svg
-
 **A practical, office-focused batch PDF conversion & processing tool.**  
 Convert Office files and images to PDF in bulk, then apply watermarks, page numbers, splitting/merging, and flexible naming rules with just a few clicks.
 
