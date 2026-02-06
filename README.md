@@ -1,9 +1,3 @@
-
-***
-
-# ✅ README.md（English / Current Version v5.x）
-
-````markdown
 # Office2PDF v5.x (Office Ultimate PDF Tool)
 
 https://img.shields.io/badge/License-MIT-green.svg
