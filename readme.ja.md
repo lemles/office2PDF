@@ -158,17 +158,3 @@ pyinstaller --onefile --noconsole --collect-all tkinterdnd2 --name Office2PDF Of
 ## ⚖️ ライセンス
 
 MIT License — ./LICENSE
-
-````
-
----
-
-## ✅ GitHub上の配置（おすすめ）
-- `README.md`：英語版（上記）
-- `README.ja.md`：日本語版（上記）
-- README冒頭に相互リンクを追加（任意）
-
-例（英語READMEの先頭に追記）：
-
-```md
-📄 English: README.md | 🇯🇵 日本語: README.ja.md
