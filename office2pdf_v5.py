@@ -133,6 +133,8 @@ I18N = {
         "title_confirm": "確認",
         "msg_ask_delete": "削除しますか？",
         "title_range": "範囲編集",
+        "pg_pos_bc": "中央下",
+        "pg_pos_br": "右下",
         "help_tags": (
             "【利用可能なタグ】\n\n"
             "{name} : 元のファイル名\n"
@@ -243,6 +245,8 @@ I18N = {
         "title_confirm": "Confirm",
         "msg_ask_delete": "Are you sure you want to delete?",
         "title_range": "Edit Range",
+        "pg_pos_bc": "Bottom Center",
+        "pg_pos_br": "Bottom Right",
         "help_tags": (
             "[Available Tags]\n\n"
             "{name} : Original filename\n"
@@ -322,7 +326,7 @@ class PDFUltimateApp:
 
         # OSの言語を取得（'ja_JP' なら 'ja'、それ以外なら 'en' にする）
         system_lang = locale.getdefaultlocale()[0]
-        self.lang = "ja" if system_lang and system_lang.startswith("ja") else "en"
+        self.lang = "en" if system_lang and system_lang.startswith("en") else "en"
 
         # 翻訳用ヘルパー関数
         self._ = lambda key: I18N[self.lang].get(key, key)
@@ -398,8 +402,8 @@ class PDFUltimateApp:
         self.config.pg_pos = self.pg_pos_var.get()
         self.config.pg_format = self.pg_fmt_var.get()
         # ページ番号位置：表示名 → 内部ID
-        pg_disp = (self.pg_pos_var.get() or "").strip()
-        self.config.pg_pos = self.pg_display_to_id.get(pg_disp, "bc")
+        disp = (self.pg_pos_var.get() or "").strip()
+        self.config.pg_pos = self.pg_display_to_id.get(disp, "bc")
         self.config.naming_tpl = self.naming_var.get()
         self.config.out_mode = self.out_mode_var.get()
         self.config.output_dir = self.out_dir_var.get()
@@ -438,9 +442,9 @@ class PDFUltimateApp:
         self.pg_fmt_var.set(self.config.pg_format)
         # ページ番号位置：内部ID → 表示名
 
-        disp = self.pg_id_to_display.get(self.config.pg_pos, "中央下")
+        disp = self.pg_id_to_display.get(self.config.pg_pos, self._("pg_pos_bc"))
         self.pg_pos_var.set(disp)
-        self.pg_pos_var.set(self.pg_id_to_display.get(self.config.pg_pos, "中央下"))
+        self.pg_pos_var.set(self.pg_id_to_display.get(self.config.pg_pos, "pg_pos_bc"))
         self.pg_en_var.set(self.config.pg_enabled)
         self.pg_fmt_var.set(self.config.pg_format)
         self.naming_var.set(self.config.naming_tpl)
@@ -538,7 +542,7 @@ class PDFUltimateApp:
         for i in [1, 2]:
             r = tk.Frame(wm_frame)
             r.pack(fill=tk.X, pady=2)
-            tk.Label(r, text=f"{self._('wm_label')}{i}:", width=10).pack(side=tk.LEFT)
+            tk.Label(r, text=f"{self._('wm_label')}{i}:", width=9).pack(side=tk.LEFT)
             val = ttk.Combobox(r, values=self.wm_templates, width=20)
             val.pack(side=tk.LEFT, padx=2)
             setattr(self, f"wm{i}_val", val)
@@ -552,22 +556,24 @@ class PDFUltimateApp:
         pg_row.pack(fill=tk.X, pady=5)
 
         # --- page number position display <-> id mapping ---
-        self.pg_display_to_id = {
-            "中央下": "bc",
-            "右下": "br",
+        # ページ番号位置（表示名 I18N 対応）
+        self.pg_id_to_display = {
+            "bc": self._("pg_pos_bc"),
+            "br": self._("pg_pos_br"),
         }
-        self.pg_id_to_display = {v: k for k, v in self.pg_display_to_id.items()}
+        self.pg_display_to_id = {v: k for k, v in self.pg_id_to_display.items()}
+
         self.pg_en_var = tk.BooleanVar()
         tk.Checkbutton(pg_row, text=self._("lbl_page_num"), variable=self.pg_en_var).pack(side=tk.LEFT)
         self.pg_fmt_var = tk.StringVar()
-        tk.Entry(pg_row, textvariable=self.pg_fmt_var, width=12).pack(side=tk.LEFT, padx=2)
-        self.pg_pos_var = tk.StringVar(value="中央下")
+        tk.Entry(pg_row, textvariable=self.pg_fmt_var, width=18).pack(side=tk.LEFT, padx=2)
+        self.pg_pos_var = tk.StringVar(value=self._("pg_pos_bc"))
 
         ttk.Combobox(
             pg_row,
             textvariable=self.pg_pos_var,
             values=list(self.pg_display_to_id.keys()),
-            width=8,
+            width=18,
             state="readonly",
         ).pack(side=tk.LEFT, padx=2)
 
