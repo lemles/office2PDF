@@ -120,7 +120,6 @@ pyinstaller --onefile --noconsole --collect-all tkinterdnd2 --name Office2PDF Of
 
 - **金額:** 15円から任意に設定いただけます。
 - **受取人メールアドレス:** `the.desert.of.the.real@gmail.com`
-  - (上記アドレスをクリックするとコピーされます ※ブラウザによります)
 
 ---
 
