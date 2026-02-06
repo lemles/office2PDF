@@ -699,18 +699,32 @@ class PDFUltimateApp:
         pres = None
         try:
             ppt = win32com.client.DispatchEx("PowerPoint.Application")
-            pres = ppt.Presentations.Open(os.path.abspath(f["path"]), WithWindow=False)
-            pres.ExportAsFixedFormat(os.path.abspath(out), 2)
+
+            # ★PowerPointは「非表示(Visible=False)」が禁止の環境があるので触らないのが安全
+            # ppt.Visible = 1  # ←必要なら True のみ（Falseは不可）
+
+            abs_path = os.path.abspath(f["path"])
+            abs_out = os.path.abspath(out)
+
+            # Open(FileName, ReadOnly, Untitled, WithWindow)
+            pres = ppt.Presentations.Open(abs_path, True, False, False)
+
+            # ★ExportAsFixedFormat の既知回避（PrintRange=None）
+            pres.ExportAsFixedFormat(abs_out, 2, PrintRange=None)
+
             return True
-        except:
+
+        except Exception as e:
+            self.queue_log(f"PPT変換エラー ({os.path.basename(f['path'])}): {e}")
             return False
+
         finally:
-            if pres:
-                pres.Close()
-                pres = None
-            if ppt:
-                ppt.Quit()
-                ppt = None
+            try:
+                if pres:
+                    pres.Close()
+            finally:
+                if ppt:
+                    ppt.Quit()
 
     def cv_img(self, f, out):
         try:
@@ -831,6 +845,17 @@ class PDFUltimateApp:
                             ok = self.cv_word(f, tmp_pdf)
                         elif f["type"] == "PowerPoint":
                             ok = self.cv_ppt(f, tmp_pdf)
+
+                        # 以下のログ出力を追加
+                        if ok:
+                            temp_units.append({"path": tmp_p, "orig": f, "sheet": "", "fseq": i + 1})
+                        else:
+                            self.queue_log(f"❌ 変換に失敗しました: {os.path.basename(f['path'])}")
+
+                        if not temp_units:  # 変換されたファイルがゼロの場合
+                            self.queue_log("⚠️ 処理対象のファイルが生成されなかったため、終了します。")
+                            return
+
                         elif f["type"] == "Image":
                             ok = self.cv_img(f, tmp_pdf)
                         elif f["type"] == "PDF":
@@ -985,15 +1010,23 @@ class PDFUltimateApp:
 
     def add_files_worker(self, paths):
         for p in paths:
-            ext = os.path.splitext(p)[1].lower()
-            if ext in [".docx", ".doc", ".xlsx", ".xls", ".xlsm", ".pdf", ".pptx", ".ppt", ".jpg", ".png"]:
+            ext = os.path.splitext(p)[1].lower()  # 拡張子を小文字で取得
+            if ext in [".docx", ".doc", ".xlsx", ".xls", ".xlsm", ".pdf", ".pptx", ".ppt", ".jpg", ".png", ".jpeg"]:
                 if any(f["path"] == p for f in self.files):
                     continue
-                t = (
-                    "Word"
-                    if "doc" in p
-                    else "Excel" if "xl" in p else "PDF" if "pdf" in p else "PPT" if "ppt" in p else "Image"
-                )
+
+                # 文字列検索ではなく、拡張子で正確に判定する
+                if ext in [".docx", ".doc"]:
+                    t = "Word"
+                elif ext in [".xlsx", ".xls", ".xlsm"]:
+                    t = "Excel"
+                elif ext in [".pptx", ".ppt"]:
+                    t = "PowerPoint"
+                elif ext in [".pdf"]:
+                    t = "PDF"
+                else:
+                    t = "Image"
+
                 info = {"path": p, "type": t, "range": "全ページ", "sheets": []}
                 if t == "Excel":
                     info["sheets"] = self.get_excel_sheets(p)
