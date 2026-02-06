@@ -1,5 +1,7 @@
 # Office2PDF v5.x (Office Ultimate PDF Tool)
 
+> Designed for office workers who need reliable, offline batch PDF processing.
+
 https://img.shields.io/badge/License-MIT-green.svg
 https://img.shields.io/badge/Platform-Windows-blue.svg
 
