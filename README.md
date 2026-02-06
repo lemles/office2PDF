@@ -13,7 +13,7 @@ Convert Office files and images to PDF in bulk, then apply watermarks, page numb
 ## ⚠️ Maintenance & Support Policy
 
 **Important: The author is not a professional software developer.**  
-This tool was created to improve personal 업무 efficiency, and it may be difficult for the author to provide complex fixes or advanced support.
+This tool was created to improve personal efficiency, and it may be difficult for the author to provide complex fixes or advanced support.
 
 - **For engineers:** Pull requests for improvements, bug fixes, and new features are welcome.
 - **For users:** This software is provided **“as-is”**, without warranty.
