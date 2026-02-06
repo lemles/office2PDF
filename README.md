@@ -64,6 +64,13 @@ Excel、Word、PowerPoint、画像をまとめてPDFに変換するだけでな�
 1. [Releases](https://github.com/あなたのユーザー名/Office2PDF-Ultimate/releases) から最新の `Office2PDF.zip` をダウンロードします。
 2. 解凍して、中の `Office2PDF.exe` を実行してください。（インストール不要）
 
+ソースコードから実行・ビルド（EXE化）したいエンジニアや、Python環境を持っているユーザー向けに、**「開発環境の構築」と「ビルド手順」**のセクションを追加しました。
+
+これを `README.md` の「使い方」の次あたりに挿入してください。
+
+---
+
+```markdown
 ## 🛠️ ソースコードからの実行・ビルド方法
 
 エンジニアの方や、Python環境で直接動かしたい方向けの手順です。
@@ -77,6 +84,31 @@ Excel、Word、PowerPoint、画像をまとめてPDFに変換するだけでな�
 
 ```bash
 pip install pywin32 pypdf Pillow reportlab tkinterdnd2
+```
+
+### 3. アプリの起動
+```bash
+python Office2PDF.py
+```
+
+### 4. 実行ファイル（.exe）へのビルド
+`PyInstaller` を使用して、単一の実行ファイルを作成できます。
+`tkinterdnd2`（ドラッグ&ドロップ機能）を正しく含めるために、以下のオプションを推奨します。
+
+```bash
+# PyInstallerのインストール
+pip install pyinstaller
+
+# ビルド実行
+pyinstaller --onefile --noconsole --collect-all tkinterdnd2 --name Office2PDF Office2PDF.py
+```
+
+- `--onefile`: 1つのEXEファイルにまとめます。
+- `--noconsole`: 起動時に黒い画面（コンソール）を表示しません。
+- `--collect-all tkinterdnd2`: ドラッグ&ドロップに必要なライブラリを全て含めます。
+
+ビルド完了後、`dist` フォルダ内に `Office2PDF.exe` が生成されます。
+```
 
 ---
 
