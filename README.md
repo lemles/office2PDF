@@ -64,6 +64,20 @@ Excel、Word、PowerPoint、画像をまとめてPDFに変換するだけでな�
 1. [Releases](https://github.com/あなたのユーザー名/Office2PDF-Ultimate/releases) から最新の `Office2PDF.zip` をダウンロードします。
 2. 解凍して、中の `Office2PDF.exe` を実行してください。（インストール不要）
 
+## 🛠️ ソースコードからの実行・ビルド方法
+
+エンジニアの方や、Python環境で直接動かしたい方向けの手順です。
+
+### 1. 実行環境
+- Python 3.9 以上 (Windows)
+- Microsoft Office インストール済み
+
+### 2. 必要ライブラリのインストール
+以下のコマンドで依存ライブラリをインストールしてください。
+
+```bash
+pip install pywin32 pypdf Pillow reportlab tkinterdnd2
+
 ---
 
 ## ☕ カンパのお願い
