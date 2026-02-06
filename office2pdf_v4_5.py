@@ -7,6 +7,7 @@ import queue
 import tempfile
 import io
 import random
+import locale
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, colorchooser
 from dataclasses import dataclass, asdict
@@ -34,6 +35,246 @@ WM_TEMPLATE_FILE = "watermark_templates.txt"
 NM_TEMPLATE_FILE = "naming_templates.txt"
 
 
+# 言語データの定義
+# text=self._("******")へ置き換え
+# self.root.title(self._("win_title"))とか
+# 言語データの定義
+I18N = {
+    "ja": {
+        "win_title": "Office2PDF v5.0",
+        "file_list": "変換ファイル(ドロップで登録・ダブルクリックでページ指定)",
+        "col_type": "種別",
+        "col_name": "ファイル名",
+        "col_range": "範囲",
+        "col_out": "出力先",
+        "btn_up": "上へ",
+        "btn_down": "下へ",
+        "btn_remove": "削除",
+        "btn_clear": "全消去",
+        "btn_clear_list": "リスト全クリア",
+        "btn_add_folder": "フォルダ追加",
+        "frame_wm": "透かし・ページ番号設定",
+        "lbl_font": "フォント:",
+        "lbl_size": "サイズ:",
+        "lbl_alpha": "不透明度:",
+        "btn_start": "PDF変換開始",
+        "btn_cancel": "キャンセル",
+        "msg_no_file": "ファイルがありません。",
+        "err_save_config": "設定保存エラー:",
+        "lbl_presets": "設定プリセット:",
+        "btn_load": "読込",
+        "btn_save": "保存",
+        "btn_delete": "削除",
+        "btn_preview_wm": "選択ファイルの1頁目をプレビュー",
+        "pos_page_center": "中央下",
+        "lbl_watermark": "透かし",
+        "wm_label": "透かし",
+        "pos_none": "なし",
+        "pos_diag_center": "中央斜め",
+        "pos_large_center": "中央大",
+        "pos_top_left": "左上",
+        "pos_top_center": "上中央",
+        "pos_top_right": "右上",
+        "pos_bottom_left": "左下",
+        "pos_bottom_center": "下中央",
+        "pos_bottom_right": "右下",
+        "pos_page_center": "中央下(ページ番号用)",
+        "lbl_page_num": "ページ番号:",
+        "frame_detail": "出力・分割詳細設定",
+        "chk_merge": "【全結合】1つのPDFにまとめる",
+        "chk_split_page": "ページ毎分割",
+        "chk_include_ppt": "(PPTも)",
+        "chk_by_sheet": "シート毎",
+        "chk_by_all_pages": "全ページ毎",
+        "lbl_excel_opt": "--- Excelオプション (印刷範囲優先) ---",
+        "chk_fit_width": "横幅1ページに収める",
+        "chk_fit_height": "縦幅1ページに収める",
+        "frame_exec": "保存設定・実行",
+        "lbl_naming": "ファイル名・命名ルール:",
+        "btn_tag_help": "タグ説明",
+        "opt_same_dir": "元と同じ場所",
+        "opt_custom_dir": "カスタム:",
+        "btn_browse": "参照",
+        "lbl_password": "パスワード:",
+        "chk_meta_clear": "メタ削除",
+        "chk_compress": "PDF軽量化",
+        "chk_open_done": "完了後開く",
+        "chk_open_folder": "フォルダ開く",
+        "chk_clear_after": "リストクリア",
+        "st_ready": "待機中...",
+        "log_font_loaded": "フォント一覧の読み込みが完了しました。",
+        "log_font_err": "フォント取得エラー:",
+        "log_font_using": "使用フォント:",
+        "log_font_fail": "フォント登録失敗:",
+        "title_warn": "警告",
+        "msg_no_files": "ファイルがありません",
+        "st_converting": "変換中...",
+        "st_conv_file": "変換中:",
+        "st_finalizing": "最終処理中...",
+        "log_fatal": "致命的エラー:",
+        "val_all_pages": "全ページ",
+        "log_ppt_err": "PPT変換エラー",
+        "title_info": "情報",
+        "msg_no_preview": "プレビューするファイルがありません。",
+        "st_preview_gen": "プレビュー生成中:",
+        "log_conv_fail": "変換に失敗しました:",
+        "msg_no_output": "処理対象のファイルが生成されなかったため、終了します。",
+        "msg_preview_ok": "プレビューを表示しました。",
+        "msg_preview_fail": "プレビュー失敗:",
+        "title_tag_help": "命名ルールのタグ説明",
+        "title_overwrite": "上書き確認",
+        "msg_exists": "存在します:",
+        "btn_overwrite": "上書き",
+        "btn_seq": "連番",
+        "btn_abort": "中止",
+        "msg_all_done": "すべての処理が完了しました。",
+        "log_preset_load": "プリセットを読込。",
+        "lbl_preset_name": "プリセット名:",
+        "title_confirm": "確認",
+        "msg_ask_delete": "削除しますか？",
+        "title_range": "範囲編集",
+        "help_tags": (
+            "【利用可能なタグ】\n\n"
+            "{name} : 元のファイル名\n"
+            "{sheet} : Excelシート名\n"
+            "{parent} : 親フォルダの名前\n"
+            "{seq} : 全体の通し番号\n"
+            "{fseq} : ファイル毎の番号\n"
+            "{pseq} : ページ毎の番号\n"
+            "{total} : 全ファイル数\n"
+            "{ptotal} : ファイル内の総ページ数\n"
+            "{username} : PCユーザー名\n"
+            "{rand} : 4桁のランダム数字\n\n"
+            "【日付・時刻】\n"
+            "{date:yyyy-mm-dd} -> 2024-02-06\n"
+            "※HH:時, MM:分, SS:秒"
+        ),
+    },
+    "en": {
+        "win_title": "Office2PDF v5.0",
+        "file_list": "Files (Drag & Drop to add / Double-click to set range)",
+        "col_type": "Type",
+        "col_name": "File Name",
+        "col_range": "Range",
+        "col_out": "Output Preview",
+        "btn_up": "Up",
+        "btn_down": "Down",
+        "btn_remove": "Remove",
+        "btn_clear": "Clear List",
+        "btn_clear_list": "Clear List",
+        "btn_add_folder": "Add Folder",
+        "frame_wm": "Watermark & Page Number",
+        "lbl_font": "Font:",
+        "lbl_size": "Size:",
+        "lbl_alpha": "Opacity:",
+        "btn_start": "Start Conversion",
+        "btn_cancel": "Cancel",
+        "msg_no_file": "No files selected.",
+        "err_save_config": "Error saving settings:",
+        "lbl_presets": "Presets:",
+        "btn_load": "Load",
+        "btn_save": "Save",
+        "btn_delete": "Delete",
+        "btn_preview_wm": "Preview 1st page of selected file",
+        "pos_page_center": "Bottom Center (Mid)",
+        "lbl_watermark": "Watermark",
+        "wm_label": "Watermark",
+        "pos_none": "None",
+        "pos_diag_center": "Diagonal Center",
+        "pos_large_center": "Large Center",
+        "pos_top_left": "Top Left",
+        "pos_top_center": "Top Center",
+        "pos_top_right": "Top Right",
+        "pos_bottom_left": "Bottom Left",
+        "pos_bottom_center": "Bottom Center",
+        "pos_bottom_right": "Bottom Right",
+        "pos_page_center": "Bottom Center (Page)",
+        "lbl_page_num": "Page Numbers:",
+        "frame_detail": "Output & Split Settings",
+        "chk_merge": "[Merge] Combine into a single PDF",
+        "chk_split_page": "Split by Page",
+        "chk_include_ppt": "(Include PPT)",
+        "chk_by_sheet": "By Sheet",
+        "chk_by_all_pages": "By All Pages",
+        "lbl_excel_opt": "--- Excel Options (Prioritize Print Area) ---",
+        "chk_fit_width": "Fit width to 1 page",
+        "chk_fit_height": "Fit height to 1 page",
+        "frame_exec": "Export Settings & Run",
+        "lbl_naming": "Naming Rules:",
+        "btn_tag_help": "Tag Guide",
+        "opt_same_dir": "Same as source",
+        "opt_custom_dir": "Custom:",
+        "btn_browse": "Browse...",
+        "lbl_password": "Password:",
+        "chk_meta_clear": "Strip Metadata",
+        "chk_compress": "Compress PDF",
+        "chk_open_done": "Open when done",
+        "chk_open_folder": "Open folder",
+        "chk_clear_after": "Clear list",
+        "st_ready": "Ready...",
+        "log_font_loaded": "Font list loaded successfully.",
+        "log_font_err": "Error fetching fonts:",
+        "log_font_using": "Font used:",
+        "log_font_fail": "Failed to register font:",
+        "title_warn": "Warning",
+        "msg_no_files": "No files selected",
+        "st_converting": "Converting...",
+        "st_conv_file": "Converting:",
+        "st_finalizing": "Finalizing...",
+        "log_fatal": "Critical Error:",
+        "val_all_pages": "All Pages",
+        "log_ppt_err": "PPT Conversion Error",
+        "title_info": "Info",
+        "msg_no_preview": "No file to preview.",
+        "st_preview_gen": "Generating preview:",
+        "log_conv_fail": "Conversion failed:",
+        "msg_no_output": "No output files were generated. Process aborted.",
+        "msg_preview_ok": "Preview displayed successfully.",
+        "msg_preview_fail": "Preview failed:",
+        "title_tag_help": "Naming Rule Tag Guide",
+        "title_overwrite": "Confirm Overwrite",
+        "msg_exists": "File already exists:",
+        "btn_overwrite": "Overwrite",
+        "btn_seq": "Add Seq Number",
+        "btn_abort": "Abort",
+        "msg_all_done": "All processes completed successfully.",
+        "log_preset_load": "Preset loaded.",
+        "lbl_preset_name": "Preset Name:",
+        "title_confirm": "Confirm",
+        "msg_ask_delete": "Are you sure you want to delete?",
+        "title_range": "Edit Range",
+        "help_tags": (
+            "[Available Tags]\n\n"
+            "{name} : Original filename\n"
+            "{sheet} : Excel sheet name\n"
+            "{parent} : Parent folder name\n"
+            "{seq} : Global sequence number\n"
+            "{fseq} : File sequence number\n"
+            "{pseq} : Page sequence number\n"
+            "{total} : Total file count\n"
+            "{ptotal} : Total pages in file\n"
+            "{username} : PC username\n"
+            "{rand} : 4-digit random number\n\n"
+            "[Date & Time]\n"
+            "{date:yyyy-mm-dd} -> 2024-02-06\n"
+            "* HH:Hour, MM:Min, SS:Sec"
+        ),
+    },
+}
+# 位置の内部IDと翻訳キーの対応表
+POS_MAP = [
+    ("None", "pos_none"),
+    ("diag", "pos_diag_center"),
+    ("large", "pos_large_center"),
+    ("tl", "pos_top_left"),
+    ("tc", "pos_top_center"),
+    ("tr", "pos_top_right"),
+    ("bl", "pos_bottom_left"),
+    ("bc", "pos_bottom_center"),
+    ("br", "pos_bottom_right"),
+]
+
+
 @dataclass
 class AppConfig:
     output_dir: str = ""
@@ -54,7 +295,7 @@ class AppConfig:
     wm_alpha: float = 0.3
 
     pg_enabled: bool = False
-    pg_pos: str = "中央下"
+    pg_pos: str = ""
     pg_format: str = "- {n} / {total} -"
 
     merge_all: bool = False
@@ -77,7 +318,18 @@ class AppConfig:
 class PDFUltimateApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Office2PDF v4.5")
+
+        # OSの言語を取得（'ja_JP' なら 'ja'、それ以外なら 'en' にする）
+        # system_lang = locale.getdefaultlocale()[0]
+        # self.lang = "ja" if system_lang and system_lang.startswith("ja") else "en"
+        system_lang = locale.getdefaultlocale()[0]
+        self.lang = "ja" if system_lang and system_lang.startswith("ja") else "en"
+
+        # 翻訳用ヘルパー関数
+        self._ = lambda key: I18N[self.lang].get(key, key)
+
+        # 以下、UI構築でこの関数を使う
+        self.root.title(self._("win_title"))
         self.root.geometry("900x920")
 
         self.files: List[Dict[str, Any]] = []
@@ -115,7 +367,7 @@ class PDFUltimateApp:
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
         except Exception as e:
-            self.queue_log(f"設定保存エラー: {e}")
+            self.queue_log(f"{self._('err_save_config')} {e}")
 
     def init_templates(self):
         wm_content = "社外秘\nコピー厳禁\n取扱注意\nSAMPLE\nCONFIDENTIAL\nDRAFT\nCOPY\nIMPORTANT\n{date:yyyy/mm/dd}\n{date:yyyy/mm/dd hh:mm}"
@@ -197,16 +449,14 @@ class PDFUltimateApp:
         main_container.pack(fill=tk.BOTH, expand=True)
 
         # File List
-        file_frame = tk.LabelFrame(
-            main_container, text="変換ファイル(ドロップで登録・ダブルクリックでページ指定)", padx=5, pady=5
-        )
+        file_frame = tk.LabelFrame(main_container, text=self._("file_list"), padx=5, pady=5)
         file_frame.pack(fill=tk.BOTH, expand=True, pady=5)
         self.tree = ttk.Treeview(file_frame, columns=("Type", "Name", "Range", "Out"), show="headings", height=8)
         for col, head, w in [
-            ("Type", "種別", 70),
-            ("Name", "ファイル名", 300),
-            ("Range", "対象範囲", 150),
-            ("Out", "出力プレビュー", 300),
+            ("Type", self._("col_type"), 70),
+            ("Name", self._("col_name"), 300),
+            ("Range", self._("col_range"), 150),
+            ("Out", self._("col_out"), 300),
         ]:
             self.tree.heading(col, text=head)
             self.tree.column(col, width=w)
@@ -217,36 +467,40 @@ class PDFUltimateApp:
 
         btn_f = tk.Frame(file_frame)
         btn_f.pack(fill=tk.X, padx=5, pady=2)
-        tk.Button(btn_f, text="上へ", command=lambda: self.move_file(-1)).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_f, text="下へ", command=lambda: self.move_file(1)).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_f, text="選択削除", command=self.remove_file).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_f, text="リスト全クリア", command=self.clear_list).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_f, text="フォルダ追加", command=self.add_folder).pack(side=tk.LEFT, padx=2)
-
+        tk.Button(btn_f, text=self._("btn_up"), command=lambda: self.move_file(-1)).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_f, text=self._("btn_down"), command=lambda: self.move_file(1)).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_f, text=self._("btn_remove"), command=self.remove_file).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_f, text=self._("btn_clear_list"), command=self.clear_list).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_f, text=self._("btn_add_folder"), command=self.add_folder).pack(side=tk.LEFT, padx=2)
         # Preset Area
         pre_f = tk.Frame(main_container)
         pre_f.pack(fill=tk.X, pady=5)
-        tk.Label(pre_f, text="設定プリセット:").pack(side=tk.LEFT)
+        tk.Label(pre_f, text=self._("lbl_presets")).pack(side=tk.LEFT)
         self.preset_combo = ttk.Combobox(pre_f, values=list(self.presets.keys()), width=25)
         self.preset_combo.pack(side=tk.LEFT, padx=5)
-        tk.Button(pre_f, text="読込", command=self.load_preset).pack(side=tk.LEFT, padx=2)
-        tk.Button(pre_f, text="保存", command=self.save_preset).pack(side=tk.LEFT, padx=2)
-        tk.Button(pre_f, text="削除", command=self.delete_preset).pack(side=tk.LEFT, padx=2)
+        tk.Button(pre_f, text=self._("btn_load"), command=self.load_preset).pack(side=tk.LEFT, padx=2)
+        tk.Button(pre_f, text=self._("btn_save"), command=self.save_preset).pack(side=tk.LEFT, padx=2)
+        tk.Button(pre_f, text=self._("btn_delete"), command=self.delete_preset).pack(side=tk.LEFT, padx=2)
 
         # Mid Columns
         mid_frame = tk.Frame(main_container)
         mid_frame.pack(fill=tk.X, pady=5)
 
-        # Left: Watermark
-        wm_frame = tk.LabelFrame(mid_frame, text="透かし・ページ番号設定", padx=10, pady=5)
+        # 翻訳された表示名と内部IDを紐付ける辞書を作成
+        self.pos_display_to_id = {self._(v): k for k, v in POS_MAP}
+        self.pos_id_to_display = {k: self._(v) for k, v in POS_MAP}
+        pos_options = list(self.pos_display_to_id.keys())
+
+        # Left: Watermark (UI構築部分)
+        wm_frame = tk.LabelFrame(mid_frame, text=self._("frame_wm"), padx=10, pady=5)
         wm_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
         f_row = tk.Frame(wm_frame)
         f_row.pack(fill=tk.X, pady=2)
-        tk.Label(f_row, text="フォント:").pack(side=tk.LEFT)
+        tk.Label(f_row, text=self._("lbl_font")).pack(side=tk.LEFT)
         self.wm_font_combo = ttk.Combobox(f_row, width=25)
         self.wm_font_combo.pack(side=tk.LEFT, padx=5)
-        tk.Label(f_row, text="サイズ:").pack(side=tk.LEFT)
+        tk.Label(f_row, text=self._("lbl_size")).pack(side=tk.LEFT)
         self.wm_size_spin = tk.Spinbox(f_row, from_=10, to=300, width=5)
         self.wm_size_spin.pack(side=tk.LEFT, padx=5)
         self.wm_color_btn = tk.Button(f_row, bg="#C0C0C0", width=2, command=self.choose_color)
@@ -254,30 +508,31 @@ class PDFUltimateApp:
 
         a_row = tk.Frame(wm_frame)
         a_row.pack(fill=tk.X, pady=2)
-        tk.Label(a_row, text="不透明度:").pack(side=tk.LEFT)
+        tk.Label(a_row, text=self._("lbl_alpha")).pack(side=tk.LEFT)
         self.wm_alpha_scale = tk.Scale(a_row, from_=0.0, to=1.0, resolution=0.05, orient=tk.HORIZONTAL, length=120)
         self.wm_alpha_scale.pack(side=tk.LEFT, padx=5)
         # プレビューボタン追加
-        tk.Button(a_row, text="選択ファイルの1頁目をプレビュー", bg="#e1e1e1", command=self.preview_watermark).pack(
+        tk.Button(a_row, text=self._("btn_preview_wm"), bg="#e1e1e1", command=self.preview_watermark).pack(
             side=tk.RIGHT
         )
 
-        pos_opts = ["None", "中央斜め", "中央大", "左上", "上中央", "右上", "左下", "下中央", "右下"]
         for i in [1, 2]:
             r = tk.Frame(wm_frame)
             r.pack(fill=tk.X, pady=2)
-            tk.Label(r, text=f"透かし{i}:", width=7).pack(side=tk.LEFT)
+            tk.Label(r, text=f"{self._('wm_label')}{i}:", width=10).pack(side=tk.LEFT)
             val = ttk.Combobox(r, values=self.wm_templates, width=20)
             val.pack(side=tk.LEFT, padx=2)
             setattr(self, f"wm{i}_val", val)
-            p_var = tk.StringVar(value="None")
-            ttk.Combobox(r, textvariable=p_var, values=pos_opts, width=10).pack(side=tk.LEFT, padx=2)
+
+            p_var = tk.StringVar(value=self.pos_id_to_display["None"])
+            cb = ttk.Combobox(r, textvariable=p_var, values=pos_options, width=15, state="readonly")
+            cb.pack(side=tk.LEFT, padx=2)
             setattr(self, f"wm{i}_pos_var", p_var)
 
         pg_row = tk.Frame(wm_frame)
         pg_row.pack(fill=tk.X, pady=5)
         self.pg_en_var = tk.BooleanVar()
-        tk.Checkbutton(pg_row, text="ページ番号:", variable=self.pg_en_var).pack(side=tk.LEFT)
+        tk.Checkbutton(pg_row, text=self._("lbl_page_num"), variable=self.pg_en_var).pack(side=tk.LEFT)
         self.pg_fmt_var = tk.StringVar()
         tk.Entry(pg_row, textvariable=self.pg_fmt_var, width=12).pack(side=tk.LEFT, padx=2)
         self.pg_pos_var = tk.StringVar()
@@ -286,13 +541,13 @@ class PDFUltimateApp:
         )
 
         # Right: Split Settings
-        split_frame = tk.LabelFrame(mid_frame, text="出力・分割詳細設定", padx=10, pady=5)
+        split_frame = tk.LabelFrame(mid_frame, text=self._("frame_detail"), padx=10, pady=5)
         split_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.merge_var = tk.BooleanVar()
         tk.Checkbutton(
             split_frame,
-            text="【全結合】1つのPDFにまとめる",
+            text=self._("chk_merge"),
             variable=self.merge_var,
             font=("", 9, "bold"),
             fg="blue",
@@ -303,52 +558,52 @@ class PDFUltimateApp:
         f1.pack(fill=tk.X, pady=(5, 0))
         tk.Label(f1, text="Word/PPT:", width=10, anchor="w").pack(side=tk.LEFT)
         self.sp_word_var, self.sp_ppt_var = tk.BooleanVar(), tk.BooleanVar()
-        tk.Checkbutton(f1, text="ページ毎分割", variable=self.sp_word_var, command=self.toggle_split_box).pack(
-            side=tk.LEFT
-        )
-        tk.Checkbutton(f1, text="(PPTも)", variable=self.sp_ppt_var, command=self.toggle_split_box).pack(side=tk.LEFT)
+        tk.Checkbutton(
+            f1, text=self._("chk_split_page"), variable=self.sp_word_var, command=self.toggle_split_box
+        ).pack(side=tk.LEFT)
+        tk.Checkbutton(
+            f1, text=self._("chk_include_ppt"), variable=self.sp_ppt_var, command=self.toggle_split_box
+        ).pack(side=tk.LEFT)
 
         f2 = tk.Frame(split_frame)
         f2.pack(fill=tk.X)
         tk.Label(f2, text="PDF:", width=10, anchor="w").pack(side=tk.LEFT)
         self.sp_pdf_var = tk.BooleanVar()
-        tk.Checkbutton(f2, text="ページ毎分割", variable=self.sp_pdf_var, command=self.toggle_split_box).pack(
-            side=tk.LEFT
-        )
+        tk.Checkbutton(
+            f2, text=self._("chk_by_all_pages"), variable=self.sp_pdf_var, command=self.toggle_split_box
+        ).pack(side=tk.LEFT)
 
         f3 = tk.Frame(split_frame)
         f3.pack(fill=tk.X)
         tk.Label(f3, text="Excel:", width=10, anchor="w").pack(side=tk.LEFT)
         self.sp_ex_sheet_var, self.sp_ex_page_var = tk.BooleanVar(), tk.BooleanVar()
-        tk.Checkbutton(f3, text="シート毎", variable=self.sp_ex_sheet_var, command=self.toggle_excel_sheet).pack(
-            side=tk.LEFT
-        )
-        tk.Checkbutton(f3, text="全ページ毎", variable=self.sp_ex_page_var, command=self.toggle_excel_page).pack(
-            side=tk.LEFT
-        )
+        tk.Checkbutton(
+            f3, text=self._("chk_by_sheet"), variable=self.sp_ex_sheet_var, command=self.toggle_excel_sheet
+        ).pack(side=tk.LEFT)
+        tk.Checkbutton(
+            f3, text=self._("chk_by_all_pages"), variable=self.sp_ex_page_var, command=self.toggle_excel_page
+        ).pack(side=tk.LEFT)
 
-        tk.Label(split_frame, text="--- Excelオプション (印刷範囲優先) ---", fg="gray", font=("", 8)).pack(
-            anchor="w", pady=(5, 0)
-        )
+        tk.Label(split_frame, text=self._("lbl_excel_opt"), fg="gray", font=("", 8)).pack(anchor="w", pady=(5, 0))
         f4 = tk.Frame(split_frame)
         f4.pack(fill=tk.X)
         self.excel_fit_var, self.excel_fit_tall_var = tk.BooleanVar(), tk.BooleanVar()
-        tk.Checkbutton(f4, text="横幅1Pに収める", variable=self.excel_fit_var).pack(side=tk.LEFT)
-        tk.Checkbutton(f4, text="縦幅1P", variable=self.excel_fit_tall_var).pack(side=tk.LEFT)
+        tk.Checkbutton(f4, text=self._("chk_fit_width"), variable=self.excel_fit_var).pack(side=tk.LEFT)
+        tk.Checkbutton(f4, text=self._("chk_fit_height"), variable=self.excel_fit_tall_var).pack(side=tk.LEFT)
 
         # Bottom
-        bottom_frame = tk.LabelFrame(main_container, text="保存設定・実行", padx=10, pady=5)
+        bottom_frame = tk.LabelFrame(main_container, text=self._("frame_exec"), padx=10, pady=5)
         bottom_frame.pack(fill=tk.X, pady=5)
 
         n_row = tk.Frame(bottom_frame)
         n_row.pack(fill=tk.X, pady=2)
-        tk.Label(n_row, text="ファイル名・命名ルール:").pack(side=tk.LEFT)
+        tk.Label(n_row, text=self._("lbl_naming")).pack(side=tk.LEFT)
         self.naming_var = tk.StringVar()
         self.naming_combo = ttk.Combobox(n_row, textvariable=self.naming_var, values=self.nm_templates, width=40)
         self.naming_combo.pack(side=tk.LEFT, padx=5)
 
         # ヘルプボタンを追加
-        tk.Button(n_row, text="タグ説明", command=self.show_naming_help, bg="#f0f0f0").pack(side=tk.LEFT)
+        tk.Button(n_row, text=self._("btn_tag_help"), command=self.show_naming_help, bg="#f0f0f0").pack(side=tk.LEFT)
 
         self.final_name_label = tk.Label(n_row, text="", fg="#0056b3", font=("", 9, "bold"))
         self.final_name_label.pack(side=tk.LEFT, padx=10)
@@ -357,33 +612,40 @@ class PDFUltimateApp:
         o_row.pack(fill=tk.X, pady=2)
         self.out_mode_var = tk.StringVar()
         tk.Radiobutton(
-            o_row, text="元と同じ場所", variable=self.out_mode_var, value="original", command=self.update_output_preview
+            o_row,
+            text=self._("opt_same_dir"),
+            variable=self.out_mode_var,
+            value="original",
+            command=self.update_output_preview,
         ).pack(side=tk.LEFT)
         tk.Radiobutton(
-            o_row, text="カスタム:", variable=self.out_mode_var, value="custom", command=self.update_output_preview
+            o_row,
+            text=self._("opt_custom_dir"),
+            variable=self.out_mode_var,
+            value="custom",
+            command=self.update_output_preview,
         ).pack(side=tk.LEFT)
         self.out_dir_var = tk.StringVar()
         tk.Entry(o_row, textvariable=self.out_dir_var, width=40).pack(side=tk.LEFT, padx=5)
-        tk.Button(o_row, text="参照", command=self.browse_dir).pack(side=tk.LEFT)
+        tk.Button(o_row, text=self._("btn_browse"), command=self.browse_dir).pack(side=tk.LEFT)
 
         s_row = tk.Frame(bottom_frame)
         s_row.pack(fill=tk.X, pady=2)
         self.pw_var = tk.StringVar()
-        tk.Label(s_row, text="PW:").pack(side=tk.LEFT)
+        tk.Label(s_row, text=self._("lbl_password")).pack(side=tk.LEFT)
         tk.Entry(s_row, textvariable=self.pw_var, width=12).pack(side=tk.LEFT, padx=5)
         self.meta_var, self.compress_var = tk.BooleanVar(), tk.BooleanVar()
-        tk.Checkbutton(s_row, text="メタ削除", variable=self.meta_var).pack(side=tk.LEFT, padx=5)
-        tk.Checkbutton(s_row, text="PDF軽量化", variable=self.compress_var).pack(side=tk.LEFT, padx=5)
+        tk.Checkbutton(s_row, text=self._("chk_meta_clear"), variable=self.meta_var).pack(side=tk.LEFT, padx=5)
+        tk.Checkbutton(s_row, text=self._("chk_compress"), variable=self.compress_var).pack(side=tk.LEFT, padx=5)
         self.open_var, self.folder_var, self.clear_after_var = tk.BooleanVar(), tk.BooleanVar(), tk.BooleanVar()
-        tk.Checkbutton(s_row, text="完了後開く", variable=self.open_var).pack(side=tk.LEFT, padx=5)
-        tk.Checkbutton(s_row, text="フォルダ開く", variable=self.folder_var).pack(side=tk.LEFT, padx=5)
-        tk.Checkbutton(s_row, text="リストクリア", variable=self.clear_after_var).pack(side=tk.LEFT, padx=5)
-
+        tk.Checkbutton(s_row, text=self._("chk_open_done"), variable=self.open_var).pack(side=tk.LEFT, padx=5)
+        tk.Checkbutton(s_row, text=self._("chk_open_folder"), variable=self.folder_var).pack(side=tk.LEFT, padx=5)
+        tk.Checkbutton(s_row, text=self._("chk_clear_after"), variable=self.clear_after_var).pack(side=tk.LEFT, padx=5)
         exec_f = tk.Frame(bottom_frame)
         exec_f.pack(fill=tk.X, pady=10)
         self.btn_convert = tk.Button(
             exec_f,
-            text="PDF変換開始",
+            text=self._("btn_start"),
             bg="#28a745",
             fg="white",
             font=("", 12, "bold"),
@@ -393,7 +655,7 @@ class PDFUltimateApp:
         self.btn_convert.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=2)
         self.btn_cancel = tk.Button(
             exec_f,
-            text="キャンセル",
+            text=self._("btn_cancel"),
             bg="#dc3545",
             fg="white",
             font=("", 12, "bold"),
@@ -403,7 +665,7 @@ class PDFUltimateApp:
         )
         self.btn_cancel.pack(side=tk.LEFT, padx=2)
 
-        self.progress_label = tk.Label(main_container, text="待機中...", anchor="w")
+        self.progress_label = tk.Label(main_container, text=self._("st_ready"), anchor="w")
         self.progress_label.pack(fill=tk.X)
         self.progress = ttk.Progressbar(main_container, orient=tk.HORIZONTAL, mode="determinate")
         self.progress.pack(fill=tk.X)
@@ -484,18 +746,41 @@ class PDFUltimateApp:
         return items_for_combo
 
     def load_fonts_delayed(self):
+        """言語に合わせた最適な初期フォントを選択する"""
         try:
             names = self.build_registry_font_items()
             self.wm_font_combo["values"] = names
+
+            # 言語別推奨フォントリスト（上から順に探す）
+            if self.lang == "ja":
+                target_fonts = [
+                    "BIZ UDPGothic",
+                    "BIZ UDPゴシック",
+                    "MS Gothic",
+                    "ＭＳ ゴシック",
+                    "Yu Gothic",
+                    "游ゴシック",
+                ]
+            else:
+                target_fonts = ["Arial", "Calibri", "Segoe UI", "Verdana"]
+
+            selected_font = ""
+            for tf in target_fonts:
+                if tf in names:
+                    selected_font = tf
+                    break
+
+            if not selected_font and names:
+                selected_font = names[0]  # 見つからなければリストの先頭
+
             if self.config.wm_font in names:
                 self.wm_font_combo.set(self.config.wm_font)
             else:
-                biz = [n for n in names if "BIZ" in n.upper()]
-                if biz:
-                    self.wm_font_combo.set(biz[0])
-            self.queue_log("フォント一覧の読み込みが完了しました。")
+                self.wm_font_combo.set(selected_font)
+
+            self.queue_log(self._("log_font_loaded"))
         except Exception as e:
-            self.queue_log(f"フォント取得エラー: {e}")
+            self.queue_log(f"{self._('log_font_err')}: {e}")
 
     def _register_reportlab_font(self) -> Tuple[str, str]:
         chosen = self.wm_font_combo.get()
@@ -508,9 +793,9 @@ class PDFUltimateApp:
                         pdfmetrics.registerFont(TTFont(internal_name, p, subfontIndex=idx))
                     else:
                         pdfmetrics.registerFont(TTFont(internal_name, p))
-                return internal_name, f"使用フォント: {chosen}"
+                return internal_name, f"{self._('log_font_using')}: {chosen}"
             except Exception as e:
-                self.queue_log(f"フォント登録失敗: {e}")
+                self.queue_log(f"{self._('log_font_fail')}: {e}")
         try:
             pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
             return "HeiseiKakuGo-W5", "使用フォント: 標準CIDフォント"
@@ -520,7 +805,7 @@ class PDFUltimateApp:
     # --- Core Processing ---
     def start_thread(self):
         if not self.files:
-            messagebox.showwarning("警告", "ファイルがありません。")
+            messagebox.showwarning(self._("title_warn"), self._("msg_no_files"))
             return
         self.save_config()
         self.processing = True
@@ -540,7 +825,9 @@ class PDFUltimateApp:
                 for i, f in enumerate(self.files):
                     if self.cancel_flag.is_set():
                         break
-                    self.queue_progress(progress=i + 1, label=f"変換中: {os.path.basename(f['path'])}")
+                    self.queue_progress(
+                        progress=i + 1, label=f"{self._('st_converting')}: {os.path.basename(f['path'])}"
+                    )
 
                     if f["type"] == "Excel":
                         units = self.cv_excel_units(f, tmp_dir)
@@ -565,7 +852,7 @@ class PDFUltimateApp:
                     return
 
                 # 最終PDF生成
-                self.queue_progress(label="最終処理中...")
+                self.queue_progress(label=f"{self._('st_finalizing')}")
                 global_seq = 1
                 dest_to_open = ""
 
@@ -623,7 +910,7 @@ class PDFUltimateApp:
                 self.finish_action(dest_to_open)
 
             except Exception as e:
-                self.queue_log(f"致命的エラー: {e}")
+                self.queue_log(f"{self._('log_fatal')}: {e}")
             finally:
                 self.processing = False
                 self.root.after(0, lambda: self.btn_convert.config(state=tk.NORMAL))
@@ -769,33 +1056,50 @@ class PDFUltimateApp:
                     # 透かし描画
                     for i in [1, 2]:
                         txt_raw = getattr(self, f"wm{i}_val").get()
-                        pos = getattr(self, f"wm{i}_pos_var").get()
-                        if pos == "None" or not txt_raw:
+                        # UIの表示名から内部IDを取得
+                        pos_display = getattr(self, f"wm{i}_pos_var").get()
+                        pos_id = self.pos_display_to_id.get(pos_display, "None")
+
+                        if pos_id == "None" or not txt_raw:
                             continue
+
                         txt = self.apply_tags(txt_raw, units[0], curr_p, 1, curr_p, total_p)
                         c.saveState()
-                        c.setFont(font_name, int(self.wm_size_spin.get()))
+
+                        # フォント設定
+                        f_size = int(self.wm_size_spin.get())
+                        c.setFont(font_name, f_size)
+
+                        # 色と透明度
                         rgb = [int(self.wm_color_btn.cget("bg").lstrip("#")[j : j + 2], 16) / 255 for j in (0, 2, 4)]
                         c.setFillColorRGB(*rgb, alpha=float(self.wm_alpha_scale.get()))
-                        if pos == "中央斜め":
+
+                        # --- IDベースの配置ロジック ---
+                        if pos_id == "diag":
                             c.translate(w / 2, h / 2)
                             c.rotate(45)
                             c.drawCentredString(0, 0, txt)
+                        elif pos_id == "large":
+                            c.drawCentredString(w / 2, h / 2, txt)
                         else:
-                            tw = c.stringWidth(txt, font_name, int(self.wm_size_spin.get()))
-                            tx = (w - tw) / 2 if "中央" in pos else (20 if "左" in pos else w - tw - 20)
-                            ty = (h - 40) if "上" in pos else (20 if "下" in pos else h / 2)
+                            tw = c.stringWidth(txt, font_name, f_size)
+                            # X座標
+                            if "l" in pos_id:
+                                tx = 20
+                            elif "r" in pos_id:
+                                tx = w - tw - 20
+                            else:
+                                tx = (w - tw) / 2  # center
+                            # Y座標
+                            if "t" in pos_id:
+                                ty = h - f_size - 20
+                            elif "b" in pos_id:
+                                ty = 20
+                            else:
+                                ty = h / 2  # mid
+
                             c.drawString(tx, ty, txt)
                         c.restoreState()
-                    # ページ番号
-                    if has_pg:
-                        p_str = self.pg_fmt_var.get().replace("{n}", str(curr_p)).replace("{total}", str(total_p))
-                        c.setFont(font_name, 10)
-                        c.setFillColorRGB(0.3, 0.3, 0.3)
-                        if self.pg_pos_var.get() == "中央下":
-                            c.drawCentredString(w / 2, 20, p_str)
-                        else:
-                            c.drawRightString(w - 20, 20, p_str)
                     c.showPage()
                     c.save()
                     packet.seek(0)
@@ -850,10 +1154,10 @@ class PDFUltimateApp:
                         if ok:
                             temp_units.append({"path": tmp_p, "orig": f, "sheet": "", "fseq": i + 1})
                         else:
-                            self.queue_log(f"❌ 変換に失敗しました: {os.path.basename(f['path'])}")
+                            self.queue_log(f"変換に失敗しました: {os.path.basename(f['path'])}")
 
                         if not temp_units:  # 変換されたファイルがゼロの場合
-                            self.queue_log("⚠️ 処理対象のファイルが生成されなかったため、終了します。")
+                            self.queue_log("処理対象のファイルが生成されなかったため、終了します。")
                             return
 
                         elif f["type"] == "Image":
@@ -915,24 +1219,7 @@ class PDFUltimateApp:
         return res
 
     def show_naming_help(self):
-        h = (
-            "【利用可能なタグ】\n\n"
-            "{name} : 元のファイル名\n"
-            "{sheet} : Excelシート名\n"
-            "{parent} : 親フォルダの名前\n"
-            "{seq} : 全体の通し番号\n"
-            "{fseq} : ファイル毎の番号\n"
-            "{pseq} : ページ毎の番号\n"
-            "{total} : 全ファイル数\n"
-            "{ptotal} : ファイル内の総ページ数\n"
-            "{username} : PCユーザー名\n"
-            "{rand} : 4桁のランダム数字\n\n"
-            "【日付・時刻】\n"
-            "{date:yyyy-mm-dd} -> 2024-02-06\n"
-            "{date:yyyy年mm月dd日 HH時MM分} \n"
-            "※HH:時, MM:分, SS:秒"
-        )
-        messagebox.showinfo("命名ルールのタグ説明", h)
+        messagebox.showinfo(self._("title_tag_help"), self._("help_tags"))
 
     def get_final_dest(self, u_info, seq, fseq, pseq, ptotal=1):
         out_name = self.apply_tags(self.naming_var.get(), u_info, seq, fseq, pseq, ptotal)
@@ -995,7 +1282,7 @@ class PDFUltimateApp:
         self.root.after(100, self.check_progress_queue)
 
     def finish_action(self, path):
-        self.queue_log("✅ すべての処理が完了しました。")
+        self.queue_log(f"{self._('msg_all_done')}")
         if self.open_var.get() and path and os.path.exists(path):
             os.startfile(path)
         if self.folder_var.get() and path:
@@ -1068,12 +1355,12 @@ class PDFUltimateApp:
         if name in self.presets:
             self.config = AppConfig(**self.presets[name])
             self.apply_config_to_ui()
-            self.queue_log(f"プリセット '{name}' を読込。")
+            self.queue_log(f"{self._('log_preset_load')}: {name}")
 
     def save_preset(self):
         import tkinter.simpledialog as sd
 
-        name = sd.askstring("保存", "プリセット名:")
+        name = sd.askstring(self._("btn_save"), self._("lbl_preset_name"))
         if name:
             self.update_config_from_ui()
             self.presets[name] = asdict(self.config)
@@ -1082,7 +1369,7 @@ class PDFUltimateApp:
 
     def delete_preset(self):
         name = self.preset_combo.get()
-        if name in self.presets and messagebox.askyesno("確認", "削除しますか？"):
+        if name in self.presets and messagebox.askyesno(self._("title_confirm"), self._("msg_ask_delete")):
             del self.presets[name]
             self.preset_combo["values"] = list(self.presets.keys())
             self.save_config()
@@ -1137,7 +1424,7 @@ class PDFUltimateApp:
                 lb.insert(tk.END, s)
             tk.Button(
                 win,
-                text="保存",
+                text=self._("btn_save"),
                 command=lambda: [
                     f.update({"range": ",".join([lb.get(i) for i in lb.curselection()])}),
                     self.update_output_preview(),
@@ -1150,7 +1437,7 @@ class PDFUltimateApp:
             ent.pack(pady=20)
             tk.Button(
                 win,
-                text="保存",
+                text=self._("btn_save"),
                 command=lambda: [f.update({"range": ent.get()}), self.update_output_preview(), win.destroy()],
             ).pack()
 
