@@ -136,6 +136,7 @@ I18N = {
         "pg_pos_bc": "中央下",
         "pg_pos_br": "右下",
         "msg_lang_restart": "言語を変更しました。アプリを再起動して適用しますか？",
+        "lbl_output_example": "出力例",
         "help_tags": (
             "【利用可能なタグ】\n\n"
             "{name} : 元のファイル名\n"
@@ -249,6 +250,7 @@ I18N = {
         "pg_pos_bc": "Bottom Center",
         "pg_pos_br": "Bottom Right",
         "msg_lang_restart": "Language changed. Restart the app to apply?",
+        "lbl_output_example": "Output example",
         "help_tags": (
             "[Available Tags]\n\n"
             "{name} : Original filename\n"
@@ -362,6 +364,7 @@ I18N = {
         "pg_pos_bc": "下方居中",
         "pg_pos_br": "右下",
         "msg_lang_restart": "语言已切换。重启应用以应用新语言吗？",
+        "lbl_output_example": "输出示例",
         "help_tags": (
             "【可用标签】\n\n"
             "{name} : 原文件名\n"
@@ -475,6 +478,7 @@ I18N = {
         "pg_pos_bc": "下方置中",
         "pg_pos_br": "右下",
         "msg_lang_restart": "語言已切換。重新啟動應用程式以套用新語言嗎？",
+        "lbl_output_example": "輸出範例",
         "help_tags": (
             "【可用標籤】\n\n"
             "{name} : 原始檔案名稱\n"
@@ -612,7 +616,14 @@ class PDFUltimateApp:
             self.queue_log(f"{self._('err_save_config')} {e}")
 
     def init_templates(self):
-        wm_content = "社外秘\nコピー厳禁\n取扱注意\nSAMPLE\nCONFIDENTIAL\nDRAFT\nCOPY\nIMPORTANT\n{date:yyyy/mm/dd}\n{date:yyyy/mm/dd hh:mm}"
+        if self.lang == "ja":
+            wm_content = "社外秘\nコピー厳禁\n取扱注意\nSAMPLE\nCONFIDENTIAL\nDRAFT\nCOPY\nIMPORTANT\n{date:yyyy/mm/dd}\n{date:yyyy/mm/dd hh:mm}"
+        elif self.lang == "zh_cn":
+            wm_content = "机密\n禁止复制\n注意处理\nSAMPLE\nCONFIDENTIAL\nDRAFT\nCOPY\nIMPORTANT\n{date:yyyy/mm/dd}\n{date:yyyy/mm/dd hh:mm}"
+        elif self.lang == "zh_tw":
+            wm_content = "機密\n禁止複製\n注意處理\nSAMPLE\nCONFIDENTIAL\nDRAFT\nCOPY\nIMPORTANT\n{date:yyyy/mm/dd}\n{date:yyyy/mm/dd hh:mm}"
+        else:
+            wm_content = "CONFIDENTIAL\nDO NOT COPY\nHANDLE WITH CARE\nSAMPLE\nDRAFT\nCOPY\nIMPORTANT\n{date:yyyy/mm/dd}\n{date:yyyy/mm/dd hh:mm}"
         nm_content = "{name}\n{name}_{sheet}\n{seq}_{name}\n{date:yyyy-mm-dd}_{name}"
         for file, content in [(WM_TEMPLATE_FILE, wm_content), (NM_TEMPLATE_FILE, nm_content)]:
             if not os.path.exists(file):
@@ -664,7 +675,7 @@ class PDFUltimateApp:
     def apply_config_to_ui(self):
         # 任意：UI変数に内部IDが入っていたら補正
         if self.pg_pos_var.get() in ("bc", "br"):
-            self.pg_pos_var.set(self.pg_id_to_display.get(self.pg_pos_var.get(), "中央下"))
+            self.pg_pos_var.set(self.pg_id_to_display.get(self.pg_pos_var.get(), self._("pg_pos_bc")))
         self.wm1_val.set(self.config.wm1_text)
         self.wm1_pos_var.set(self.config.wm1_pos)
         self.wm2_val.set(self.config.wm2_text)
@@ -1052,6 +1063,16 @@ class PDFUltimateApp:
                     "Yu Gothic",
                     "游ゴシック",
                 ]
+            elif self.lang in ("zh_cn", "zh_tw"):
+                target_fonts = [
+                    "Microsoft YaHei",
+                    "微软雅黑",
+                    "SimSun",
+                    "宋体",
+                    "PMingLiU",
+                    "新細明體",
+                    "MingLiU",
+                ]
             else:
                 target_fonts = ["Arial", "Calibri", "Segoe UI", "Verdana"]
 
@@ -1090,9 +1111,9 @@ class PDFUltimateApp:
 
         try:
             pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
-            return "HeiseiKakuGo-W5", "使用フォント: 標準CIDフォント"
+            return "HeiseiKakuGo-W5", f"{self._('log_font_using')}: HeiseiKakuGo-W5 (CID)"
         except:
-            return "Helvetica", "使用フォント: Helvetica (日本語不可)"
+            return "Helvetica", f"{self._('log_font_using')}: Helvetica"
 
     # --- Core Processing ---
     def start_thread(self):
@@ -1244,7 +1265,7 @@ class PDFUltimateApp:
             wb = excel.Workbooks.Open(os.path.abspath(f["path"]), ReadOnly=True)
 
             target_sheets = [s.strip() for s in f.get("range", "").split(",") if s.strip()]
-            if not target_sheets or target_sheets == ["全ページ"]:
+            if not target_sheets or self._is_all_range(f.get("range", "")):
                 target_sheets = [s.Name for s in wb.Sheets]
 
             for name in target_sheets:
@@ -1312,7 +1333,7 @@ class PDFUltimateApp:
             return True
 
         except Exception as e:
-            self.queue_log(f"PPT変換エラー ({os.path.basename(f['path'])}): {e}")
+            self.queue_log(f"{self._('log_ppt_err')} ({os.path.basename(f['path'])}): {e}")
             return False
 
         finally:
@@ -1649,8 +1670,8 @@ class PDFUltimateApp:
             return dest
         ans = self._ui_call_sync(
             messagebox.askyesnocancel,
-            "上書き確認",
-            f"存在します: {os.path.basename(dest)}\nYes:上書き, No:連番, Cancel:中止",
+            self._("title_overwrite"),
+            f"{self._('msg_exists')} {os.path.basename(dest)}\nYes: {self._('btn_overwrite')}, No: {self._('btn_seq')}, Cancel: {self._('btn_abort')}",
         )
         if ans is None:
             return None
@@ -1729,7 +1750,7 @@ class PDFUltimateApp:
                 else:
                     t = "Image"
 
-                info = {"path": p, "type": t, "range": "全ページ", "sheets": []}
+                info = {"path": p, "type": t, "range": self._("val_all_pages"), "sheets": []}
                 if t == "Excel":
                     info["sheets"] = self.get_excel_sheets(p)
                 self.files.append(info)
@@ -1758,11 +1779,12 @@ class PDFUltimateApp:
     def update_output_preview(self):
         if not self.files:
             self.final_name_label.config(text="")
+            self.update_tree()
             return
         f0 = self.files[0]
         u0 = {"orig": f0, "sheet": f0["sheets"][0] if f0["sheets"] else "Sheet1", "fseq": 1}
         p_name = self.apply_tags(self.naming_var.get(), u0, 1, 1, 1)
-        self.final_name_label.config(text=f"出力例: {p_name}.pdf")
+        self.final_name_label.config(text=f"{self._('lbl_output_example')}: {p_name}.pdf")
         self.update_tree()
 
     def load_preset(self):
@@ -1830,7 +1852,7 @@ class PDFUltimateApp:
         idx = self.tree.index(item)
         f = self.files[idx]
         win = tk.Toplevel(self.root)
-        win.title("範囲編集")
+        win.title(self._("title_range"))
         win.geometry("300x400")
         if f["type"] == "Excel":
             lb = tk.Listbox(win, selectmode=tk.MULTIPLE)
