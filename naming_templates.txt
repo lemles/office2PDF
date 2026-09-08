@@ -1,4 +1,0 @@
-{name}
-{name}_{sheet}
-{seq}_{name}
-{date:yyyy-mm-dd}_{name}
