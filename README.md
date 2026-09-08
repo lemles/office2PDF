@@ -1,5 +1,7 @@
 # Office2PDF v5.x (Office Ultimate PDF Tool)
 
+> [English](./README.md) | [日本語](./readme.ja.md) | [简体中文](./readme.zh-cn.md) | [繁體中文](./readme.zh-tw.md)
+
 > Designed for office workers who need reliable, offline batch PDF processing.
 
 

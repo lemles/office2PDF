@@ -135,6 +135,7 @@ I18N = {
         "title_range": "範囲編集",
         "pg_pos_bc": "中央下",
         "pg_pos_br": "右下",
+        "msg_lang_restart": "言語を変更しました。アプリを再起動して適用しますか？",
         "help_tags": (
             "【利用可能なタグ】\n\n"
             "{name} : 元のファイル名\n"
@@ -247,6 +248,7 @@ I18N = {
         "title_range": "Edit Range",
         "pg_pos_bc": "Bottom Center",
         "pg_pos_br": "Bottom Right",
+        "msg_lang_restart": "Language changed. Restart the app to apply?",
         "help_tags": (
             "[Available Tags]\n\n"
             "{name} : Original filename\n"
@@ -262,6 +264,232 @@ I18N = {
             "[Date & Time]\n"
             "{date:yyyy-mm-dd} -> 2024-02-06\n"
             "* HH:Hour, MM:Min, SS:Sec"
+        ),
+    },
+    "zh_cn": {
+        "win_title": "Office2PDF v5.0",
+        "file_list": "转换文件（拖拽添加 / 双击设置页码范围）",
+        "col_type": "类型",
+        "col_name": "文件名",
+        "col_range": "范围",
+        "col_out": "输出预览",
+        "btn_up": "上移",
+        "btn_down": "下移",
+        "btn_remove": "移除",
+        "btn_clear": "全部清除",
+        "btn_clear_list": "清空列表",
+        "btn_add_folder": "添加文件夹",
+        "frame_wm": "水印与页码设置",
+        "lbl_font": "字体:",
+        "lbl_size": "大小:",
+        "lbl_alpha": "不透明度:",
+        "btn_start": "开始转换 PDF",
+        "btn_cancel": "取消",
+        "msg_no_file": "没有选择文件。",
+        "err_save_config": "设置保存错误:",
+        "lbl_presets": "设置预设:",
+        "btn_load": "读取",
+        "btn_save": "保存",
+        "btn_delete": "删除",
+        "btn_preview_wm": "预览所选文件第 1 页",
+        "pos_page_center": "下方居中",
+        "lbl_watermark": "水印",
+        "wm_label": "水印",
+        "pos_none": "无",
+        "pos_diag_center": "居中斜排",
+        "pos_large_center": "居中大字",
+        "pos_top_left": "左上",
+        "pos_top_center": "顶部居中",
+        "pos_top_right": "右上",
+        "pos_bottom_left": "左下",
+        "pos_bottom_center": "底部居中",
+        "pos_bottom_right": "右下",
+        "pos_page_center": "下方居中（页码用）",
+        "lbl_page_num": "页码:",
+        "frame_detail": "输出与拆分详细设置",
+        "chk_merge": "【全部合并】合并为一个 PDF",
+        "chk_split_page": "按页拆分",
+        "chk_include_ppt": "（含 PPT）",
+        "chk_by_sheet": "按工作表",
+        "chk_by_all_pages": "按全部页面",
+        "lbl_excel_opt": "--- Excel 选项（优先打印区域） ---",
+        "chk_fit_width": "宽度适配一页",
+        "chk_fit_height": "高度适配一页",
+        "frame_exec": "保存设置与执行",
+        "lbl_naming": "文件名命名规则:",
+        "btn_tag_help": "标签说明",
+        "opt_same_dir": "与原文件相同",
+        "opt_custom_dir": "自定义:",
+        "btn_browse": "浏览...",
+        "lbl_password": "密码:",
+        "chk_meta_clear": "删除元数据",
+        "chk_compress": "PDF 瘦身",
+        "chk_open_done": "完成后打开",
+        "chk_open_folder": "打开文件夹",
+        "chk_clear_after": "清空列表",
+        "st_ready": "待机中...",
+        "log_font_loaded": "字体列表加载完成。",
+        "log_font_err": "获取字体出错:",
+        "log_font_using": "使用字体:",
+        "log_font_fail": "字体注册失败:",
+        "title_warn": "警告",
+        "msg_no_files": "没有选择文件",
+        "st_converting": "转换中...",
+        "st_conv_file": "转换中:",
+        "st_finalizing": "正在完成最后处理...",
+        "log_fatal": "致命错误:",
+        "val_all_pages": "全部页面",
+        "log_ppt_err": "PPT 转换错误",
+        "title_info": "信息",
+        "msg_no_preview": "没有可预览的文件。",
+        "st_preview_gen": "正在生成预览:",
+        "log_conv_fail": "转换失败:",
+        "msg_no_output": "未生成任何输出文件，已终止。",
+        "msg_preview_ok": "预览已显示。",
+        "msg_preview_fail": "预览失败:",
+        "title_tag_help": "命名规则标签说明",
+        "title_overwrite": "覆盖确认",
+        "msg_exists": "已存在:",
+        "btn_overwrite": "覆盖",
+        "btn_seq": "加序号",
+        "btn_abort": "中止",
+        "msg_all_done": "全部处理完成。",
+        "log_preset_load": "预设已读取。",
+        "lbl_preset_name": "预设名称:",
+        "title_confirm": "确认",
+        "msg_ask_delete": "确定要删除吗？",
+        "title_range": "编辑范围",
+        "pg_pos_bc": "下方居中",
+        "pg_pos_br": "右下",
+        "msg_lang_restart": "语言已切换。重启应用以应用新语言吗？",
+        "help_tags": (
+            "【可用标签】\n\n"
+            "{name} : 原文件名\n"
+            "{sheet} : Excel 工作表名\n"
+            "{parent} : 上级文件夹名\n"
+            "{seq} : 全局序号\n"
+            "{fseq} : 文件内序号\n"
+            "{pseq} : 页面序号\n"
+            "{total} : 文件总数\n"
+            "{ptotal} : 文件内总页数\n"
+            "{username} : 电脑用户名\n"
+            "{rand} : 4 位随机数字\n\n"
+            "【日期与时间】\n"
+            "{date:yyyy-mm-dd} -> 2024-02-06\n"
+            "※HH:时, MM:分, SS:秒"
+        ),
+    },
+    "zh_tw": {
+        "win_title": "Office2PDF v5.0",
+        "file_list": "轉換檔案（拖曳加入 / 雙擊設定頁碼範圍）",
+        "col_type": "類型",
+        "col_name": "檔案名稱",
+        "col_range": "範圍",
+        "col_out": "輸出位置",
+        "btn_up": "上移",
+        "btn_down": "下移",
+        "btn_remove": "移除",
+        "btn_clear": "全部清除",
+        "btn_clear_list": "清空清單",
+        "btn_add_folder": "加入資料夾",
+        "frame_wm": "浮水印與頁碼設定",
+        "lbl_font": "字型:",
+        "lbl_size": "大小:",
+        "lbl_alpha": "不透明度:",
+        "btn_start": "開始轉換 PDF",
+        "btn_cancel": "取消",
+        "msg_no_file": "尚未選擇檔案。",
+        "err_save_config": "設定儲存錯誤:",
+        "lbl_presets": "設定預設:",
+        "btn_load": "讀取",
+        "btn_save": "儲存",
+        "btn_delete": "刪除",
+        "btn_preview_wm": "預覽所選檔案第 1 頁",
+        "pos_page_center": "下方置中",
+        "lbl_watermark": "浮水印",
+        "wm_label": "浮水印",
+        "pos_none": "無",
+        "pos_diag_center": "置中斜排",
+        "pos_large_center": "置中大字",
+        "pos_top_left": "左上",
+        "pos_top_center": "上方置中",
+        "pos_top_right": "右上",
+        "pos_bottom_left": "左下",
+        "pos_bottom_center": "下方置中",
+        "pos_bottom_right": "右下",
+        "pos_page_center": "下方置中（頁碼用）",
+        "lbl_page_num": "頁碼:",
+        "frame_detail": "輸出與分割詳細設定",
+        "chk_merge": "【全部合併】合併為單一 PDF",
+        "chk_split_page": "按頁分割",
+        "chk_include_ppt": "（含 PPT）",
+        "chk_by_sheet": "按工作表",
+        "chk_by_all_pages": "按全部頁面",
+        "lbl_excel_opt": "--- Excel 選項（優先列印範圍） ---",
+        "chk_fit_width": "寬度適應單頁",
+        "chk_fit_height": "高度適應單頁",
+        "frame_exec": "儲存設定與執行",
+        "lbl_naming": "檔案命名規則:",
+        "btn_tag_help": "標籤說明",
+        "opt_same_dir": "與原始檔相同",
+        "opt_custom_dir": "自訂:",
+        "btn_browse": "瀏覽...",
+        "lbl_password": "密碼:",
+        "chk_meta_clear": "移除中繼資料",
+        "chk_compress": "PDF 瘦身",
+        "chk_open_done": "完成後開啟",
+        "chk_open_folder": "開啟資料夾",
+        "chk_clear_after": "清空清單",
+        "st_ready": "待機中...",
+        "log_font_loaded": "字型清單載入完成。",
+        "log_font_err": "取得字型錯誤:",
+        "log_font_using": "使用字型:",
+        "log_font_fail": "字型註冊失敗:",
+        "title_warn": "警告",
+        "msg_no_files": "尚未選擇檔案",
+        "st_converting": "轉換中...",
+        "st_conv_file": "轉換中:",
+        "st_finalizing": "正在完成最後處理...",
+        "log_fatal": "嚴重錯誤:",
+        "val_all_pages": "全部頁面",
+        "log_ppt_err": "PPT 轉換錯誤",
+        "title_info": "資訊",
+        "msg_no_preview": "沒有可預覽的檔案。",
+        "st_preview_gen": "正在產生預覽:",
+        "log_conv_fail": "轉換失敗:",
+        "msg_no_output": "未產生任何輸出檔案，已中止。",
+        "msg_preview_ok": "預覽已顯示。",
+        "msg_preview_fail": "預覽失敗:",
+        "title_tag_help": "命名規則標籤說明",
+        "title_overwrite": "覆蓋確認",
+        "msg_exists": "已存在:",
+        "btn_overwrite": "覆蓋",
+        "btn_seq": "加編號",
+        "btn_abort": "中止",
+        "msg_all_done": "全部處理完成。",
+        "log_preset_load": "預設已讀取。",
+        "lbl_preset_name": "預設名稱:",
+        "title_confirm": "確認",
+        "msg_ask_delete": "確定要刪除嗎？",
+        "title_range": "編輯範圍",
+        "pg_pos_bc": "下方置中",
+        "pg_pos_br": "右下",
+        "msg_lang_restart": "語言已切換。重新啟動應用程式以套用新語言嗎？",
+        "help_tags": (
+            "【可用標籤】\n\n"
+            "{name} : 原始檔案名稱\n"
+            "{sheet} : Excel 工作表名稱\n"
+            "{parent} : 上層資料夾名稱\n"
+            "{seq} : 全域流水號\n"
+            "{fseq} : 檔案內流水號\n"
+            "{pseq} : 頁面流水號\n"
+            "{total} : 檔案總數\n"
+            "{ptotal} : 檔案內總頁數\n"
+            "{username} : 電腦使用者名稱\n"
+            "{rand} : 4 位隨機數字\n\n"
+            "【日期與時間】\n"
+            "{date:yyyy-mm-dd} -> 2024-02-06\n"
+            "※HH:時, MM:分, SS:秒"
         ),
     },
 }
@@ -281,6 +509,7 @@ POS_MAP = [
 
 @dataclass
 class AppConfig:
+    lang: str = ""  # 手动选择的语言（空 = 自动检测）
     output_dir: str = ""
     out_mode: str = "original"
     naming_tpl: str = "{name}"
@@ -324,9 +553,15 @@ class PDFUltimateApp:
     def __init__(self, root):
         self.root = root
 
-        # OSの言語を取得（'ja_JP' なら 'ja'、それ以外なら 'en' にする）
-        system_lang = locale.getdefaultlocale()[0]
-        self.lang = "en" if system_lang and system_lang.startswith("en") else "en"
+        # OSの言語を取得（'ja_JP' なら 'ja'、'zh_CN' なら 'zh_cn'、それ以外なら 'en' にする）
+        system_lang = locale.getdefaultlocale()[0] or ""
+        if system_lang.startswith("ja"):
+            self.lang = "ja"
+        elif system_lang.startswith("zh"):
+            # zh_TW / zh_HK / zh_MO → 繁体字、それ以外（zh_CN / zh_SG）→ 簡体字
+            self.lang = "zh_tw" if system_lang in ("zh_TW", "zh_HK", "zh_MO") else "zh_cn"
+        else:
+            self.lang = "en"
 
         # 翻訳用ヘルパー関数
         self._ = lambda key: I18N[self.lang].get(key, key)
@@ -343,6 +578,10 @@ class PDFUltimateApp:
         self.progress_queue = queue.Queue()
 
         self.load_config()
+        # 手动选择的语言优先于系统自动检测
+        saved_lang = getattr(self.config, "lang", "")
+        if saved_lang in I18N:
+            self.lang = saved_lang
         self.init_templates()
         self.setup_ui()
         self.apply_config_to_ui()
@@ -468,6 +707,21 @@ class PDFUltimateApp:
 
     # --- UI Setup ---
     def setup_ui(self):
+        # 言語切替メニュー
+        menubar = tk.Menu(self.root)
+        lang_menu = tk.Menu(menubar, tearoff=0)
+        self._lang_names = {"ja": "日本語", "en": "English", "zh_cn": "简体中文", "zh_tw": "繁體中文"}
+        self._lang_var = tk.StringVar(value=self.lang)
+        for code in ("ja", "en", "zh_cn", "zh_tw"):
+            lang_menu.add_radiobutton(
+                label=self._lang_names[code],
+                variable=self._lang_var,
+                value=code,
+                command=lambda c=code: self.change_language(c),
+            )
+        menubar.add_cascade(label="Language", menu=lang_menu)
+        self.root.config(menu=menubar)
+
         main_container = tk.Frame(self.root, padx=10, pady=5)
         main_container.pack(fill=tk.BOTH, expand=True)
 
@@ -1605,8 +1859,31 @@ class PDFUltimateApp:
     def cancel_process(self):
         self.cancel_flag.set()
 
+    # --- Language Switch ---
+    def change_language(self, lang_code: str):
+        if lang_code == self.lang:
+            return
+        self.lang = lang_code
+        self.config.lang = lang_code
+        # 設定を即座に保存（UI 値の読み取りに失敗しても言語選択は保持する）
+        try:
+            self.update_config_from_ui()
+            self.config.lang = lang_code
+            data = {"current": asdict(self.config), "presets": self.presets}
+            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+        except Exception:
+            pass
+        if messagebox.askyesno(self._("title_info"), self._("msg_lang_restart")):
+            self.root.destroy()
+            restart_app()
+
+
+def restart_app():
+    root = TkinterDnD.Tk()
+    PDFUltimateApp(root)
+    root.mainloop()
+
 
 if __name__ == "__main__":
-    root = TkinterDnD.Tk()
-    app = PDFUltimateApp(root)
-    root.mainloop()
+    restart_app()
